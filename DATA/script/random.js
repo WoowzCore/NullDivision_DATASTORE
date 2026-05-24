@@ -1,67 +1,69 @@
 var __Random_Seed = Math.floor(Math.random() * 0x7fffffff)
+var __ChangeSeed = true
+
+const LCG_MULTIPLIER = 1664525
+const LCG_INCREMENT  = 1013904223
+const LCG_MODULUS    = 0x100000000
 
 _G.Random = {
     // Установить сид
     SetSeed: function(Seed){
-        __Random_Seed = Seed
+        __Random_Seed = Seed >>> 0
+    },
+
+    // Изменять сид?
+    SetChangeSeed: function(ChangeSeed){
+        __ChangeSeed = ChangeSeed
     },
 
     // Случайное число от 0 до 1
-    Random: function(ChangeSeed){
-        if(ChangeSeed === undefined){ ChangeSeed = true; }
+    Random: function(){
+        if(__ChangeSeed){ __Random_Seed = (__Random_Seed * LCG_MULTIPLIER + LCG_INCREMENT) >>> 0 }
 
-        const __NewSeed = (__Random_Seed * 1103515245 + 12345) & 0x7fffffff;
-        if(ChangeSeed){ __Random_Seed = __NewSeed }
-        return __NewSeed / 0x7fffffff
+        var X = __Random_Seed
+        X = (X ^ (X >>> 16)) * 0x85ebca6b
+        X = (X ^ (X >>> 13)) * 0xc2b2ae35
+        X =  X ^ (X >>> 16)
+
+        return (X >>> 0) / LCG_MODULUS
     },
 
     // Случайное целое число
-    RandomInt: function(Min, Max, ChangeSeed){
-        if(ChangeSeed === undefined){ ChangeSeed = true; }
-
-        return Math.floor(_G.Random.Random(ChangeSeed) * (Max - Min)) + Min
+    RandomInt: function(Min, Max){
+        if(Min >= Max){ return Max }
+        return Math.floor(_G.Random.Random() * (Max - Min)) + Min
     },
 
     // Случайное дробное число
-    RandomFloat: function(Min, Max, ChangeSeed){
-        if(ChangeSeed === undefined){ ChangeSeed = true; }
-
-        return Min + _G.Random.Random(ChangeSeed) * (Max - Min)
+    RandomFloat: function(Min, Max){
+        if(Min >= Max){ return Max }
+        return Min + _G.Random.Random() * (Max - Min)
     },
 
     // ----------------------------------------------------------------------
 
     // Получает случайный элемент из массива
-    FromArray: function(Array, ChangeSeed){
-        if(ChangeSeed === undefined){ ChangeSeed = true; }
-
-        if(!Array || Array.length === 0){ return undefined }
-        return Array[_G.Random.RandomInt(0, Array.length, ChangeSeed)]
+    FromArray: function(Array){
+        return Array[_G.Random.RandomInt(0, Array.length)]
     },
 
     // Получает случайный ключ из таблицы
-    FromKey: function(Table, ChangeSeed){
-        if(ChangeSeed === undefined){ ChangeSeed = true; }
-
+    FromKey: function(Table){
         if(!Table){ return undefined }
-        var Keys = Object.keys(Table)
-        return _G.Random.FromArray(Keys, ChangeSeed)
+        const Keys = Object.keys(Table)
+        return _G.Random.FromArray(Keys)
     },
 
     // Получает случайный элемент из таблицы
-    FromValue: function(Table, ChangeSeed){
-        if(ChangeSeed === undefined){ ChangeSeed = true; }
-
+    FromValue: function(Table){
         if(!Table){ return undefined }
-        return Table[_G.Random.FromKey(Table, ChangeSeed)]
+        return Table[_G.Random.FromKey(Table)]
     },
 
     // Получает случайный ключ и элемент из таблицы
-    FromEntry: function(Table, ChangeSeed){
-        if(ChangeSeed === undefined){ ChangeSeed = true; }
-
+    FromEntry: function(Table){
         if(!Table){ return undefined }
-        var Key = _G.Random.FromKey(Table, ChangeSeed)
+        const Key = _G.Random.FromKey(Table)
         return [Key, Table[Key]]
     }
 }
