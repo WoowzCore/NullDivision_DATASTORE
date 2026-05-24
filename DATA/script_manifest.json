@@ -1,3 +1,3 @@
 {
-  "scripts": [ "bootstrap", "values", "brain", "random", "window", "fear", "arts", "log" ]
+  "scripts": [ "bootstrap", "values", "brain", "random", "window", "arts" ]
 }

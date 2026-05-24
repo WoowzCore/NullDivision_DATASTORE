@@ -15,3 +15,9 @@ _G.AddEvent = function(ID, Handler){ _G.JAVA.AddEvent(ID, Handler) }
 
 // Получает содержимое функции
 _G.GetFunctionContent = function(Function){ return Function.toString() }
+
+// Серверная сторона?
+_G.ServerSide = function(){ return _G.JAVA.ServerSide() }
+
+// Клиентская сторона?
+_G.ClientSide = function(){ return _G.JAVA.ClientSide() }
