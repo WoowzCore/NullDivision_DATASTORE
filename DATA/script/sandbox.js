@@ -12,7 +12,7 @@ _G.ApplyAnomaly(_G.Enum.Anomaly.SkyEndTiles, 1)
 _G.ApplyAnomaly(_G.Enum.Anomaly.SkyEndTexture, _G.ResourceLocation(_G.Constant.TempID, "textures/test.png"))
 
 var i = 0
-_G.SetEvent(_G.Enum.EventType.ServerTick, function(End){
+_G.SetEvent(_G.Enum.Event.ServerTick, function(End){
     if(!End){ return }
 
     i++
