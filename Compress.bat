@@ -1,11 +1,13 @@
 @echo off
 setlocal
 
-set "SourceFolder=DATA"
-set "ZipFile=DATA.zip"
-set "VersionFile=Version.txt"
+set "SourceFolder1=DATA"
+set "ZipFile1=DATA.zip"
 
-if exist "%ZipFile%" del "%ZipFile%"
+set "SourceFolder2=RESOURCE"
+set "ZipFile2=RESOURCE.zip"
+
+set "VersionFile=Version.txt"
 
 if exist "%VersionFile%" (
 	for /f "tokens=*" %%a in ('type "%VersionFile%"') do set "Version=%%a"
@@ -16,8 +18,28 @@ if exist "%VersionFile%" (
 <nul set /p "=%Version%" > "%VersionFile%"
 echo Version updated to: %Version%
 
-pushd "%SourceFolder%"
-7z a -tzip "..\%ZipFile%" * -mx=1 -mmt=on -r -bb0 >nul
-popd
+REM ZIP 1
+if exist "%ZipFile1%" del "%ZipFile1%"
+if exist "%SourceFolder1%" (
+	echo Zipping %ZipFile1%...
+	pushd "%SourceFolder1%"
+	7z a -tzip "..\%ZipFile1%" * -mx=1 -mmt=on -r -bb0 >nul
+	popd
+	echo %ZipFile1% created
+) else (
+	echo WARNING: %SourceFolder1% not found!
+)
+
+REM ZIP 2
+if exist "%ZipFile2%" del "%ZipFile2%"
+if exist "%SourceFolder2%" (
+	echo Zipping %ZipFile2%...
+	pushd "%SourceFolder2%"
+	7z a -tzip "..\%ZipFile2%" * -mx=1 -mmt=on -r -bb0 >nul
+	popd
+	echo %ZipFile2% created
+) else (
+	echo WARNING: %SourceFolder2% not found!
+)
 
 echo Done! Version: %Version%
