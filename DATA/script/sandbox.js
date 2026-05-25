@@ -1,392 +1,321 @@
-// ========== ДРЕВНИЕ СТРАЖИ ==========
-// Для двух игроков | Центр: 0, 60, 0
-// Структуры генерируются на расстоянии 200-1000 блоков
+// ========== ЖИВОЙ МИР ==========
+// Высота мира: 0 | Для двух игроков
+// Частые ивенты и постоянная активность
 
 // ========== НАСТРОЙКИ ==========
-var WORLD_RADIUS = 1000
-var CENTER_X = 0
-var CENTER_Z = 0
-var CENTER_Y = 60
-
+var WORLD_Y = 0
+var EVENT_TIMER = 0
+var ACTIVE_EVENT = null
+var EVENT_DURATION = 0
 var structures = []
-var rareEffectTimer = 0
 
-// ========== ТИПЫ СТРУКТУР ==========
-var STRUCTURE_TYPES = [
-    "ancient_temple",
-    "elemental_shrine",
-    "dark_altar",
-    "mystic_tower",
-    "guardian_fortress",
-    "sky_pillar"
+// ========== СПИСОК ИВЕНТОВ ==========
+var EVENTS = [
+    {
+        name: "§cКРОВАВЫЙ ДОЖДЬ",
+        chance: 0.15,
+        duration: 300,
+        action: function(){
+            for(var i = 0; i < 50; i++){
+                var x = (Math.random() - 0.5) * 200
+                var z = (Math.random() - 0.5) * 200
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + Math.floor(Math.random() * 10), Math.floor(z), "redstone_block")
+            }
+        },
+        message: "§cНебо плачет кровавыми слезами!"
+    },
+    {
+        name: "§2ЛЕСНОЕ ПРОБУЖДЕНИЕ",
+        chance: 0.12,
+        duration: 400,
+        action: function(){
+            for(var i = 0; i < 80; i++){
+                var x = (Math.random() - 0.5) * 250
+                var z = (Math.random() - 0.5) * 250
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "oak_leaves")
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "oak_log")
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 3, Math.floor(z), "oak_leaves")
+            }
+        },
+        message: "§2Из земли вырастают древние деревья!"
+    },
+    {
+        name: "§5МИСТИЧЕСКИЙ ТУМАН",
+        chance: 0.18,
+        duration: 250,
+        action: function(){
+            for(var i = 0; i < 150; i++){
+                var x = (Math.random() - 0.5) * 300
+                var z = (Math.random() - 0.5) * 300
+                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), "cobweb")
+            }
+        },
+        message: "§5Густой туман окутывает землю!"
+    },
+    {
+        name: "§eЗОЛОТАЯ ЛИХОРАДКА",
+        chance: 0.1,
+        duration: 350,
+        action: function(){
+            for(var i = 0; i < 60; i++){
+                var x = (Math.random() - 0.5) * 200
+                var z = (Math.random() - 0.5) * 200
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "gold_block")
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "gold_ore")
+            }
+        },
+        message: "§eЗемля начинает светиться золотом!"
+    },
+    {
+        name: "§8ПРОБУЖДЕНИЕ СТРАЖЕЙ",
+        chance: 0.08,
+        duration: 500,
+        action: function(){
+            for(var i = 0; i < 20; i++){
+                var x = (Math.random() - 0.5) * 300
+                var z = (Math.random() - 0.5) * 300
+                for(var h = 0; h < 3; h++){
+                    _G.World.SetBlock(Math.floor(x), WORLD_Y + 1 + h, Math.floor(z), "iron_block")
+                }
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 4, Math.floor(z), "carved_pumpkin")
+            }
+        },
+        message: "§8Каменные стражи оживают!"
+    },
+    {
+        name: "§bЛЕДЯНОЕ ДЫХАНИЕ",
+        chance: 0.14,
+        duration: 280,
+        action: function(){
+            for(var i = 0; i < 100; i++){
+                var x = (Math.random() - 0.5) * 250
+                var z = (Math.random() - 0.5) * 250
+                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), "ice")
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "snow_block")
+            }
+        },
+        message: "§bМир покрывается льдом и снегом!"
+    },
+    {
+        name: "§4ПЛОТЯНОЙ КОВЁР",
+        chance: 0.11,
+        duration: 320,
+        action: function(){
+            for(var i = 0; i < 120; i++){
+                var x = (Math.random() - 0.5) * 280
+                var z = (Math.random() - 0.5) * 280
+                var block = Math.random() < 0.5 ? "nether_wart_block" : "crimson_hyphae"
+                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), block)
+            }
+        },
+        message: "§4Земля покрывается пульсирующей плотью!"
+    },
+    {
+        name: "§dСВЕТЯЩИЙСЯ ДОЖДЬ",
+        chance: 0.13,
+        duration: 300,
+        action: function(){
+            for(var i = 0; i < 80; i++){
+                var x = (Math.random() - 0.5) * 200
+                var z = (Math.random() - 0.5) * 200
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + Math.floor(Math.random() * 5), Math.floor(z), "glowstone")
+            }
+        },
+        message: "§dС неба падают светящиеся кристаллы!"
+    },
+    {
+        name: "§3ВОДНЫЙ ПОТОП",
+        chance: 0.09,
+        duration: 400,
+        action: function(){
+            for(var i = 0; i < 200; i++){
+                var x = (Math.random() - 0.5) * 350
+                var z = (Math.random() - 0.5) * 350
+                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), "water")
+            }
+        },
+        message: "§3Вода поднимается из глубин!"
+    },
+    {
+        name: "§6ДРЕВНИЙ ГНЕВ",
+        chance: 0.07,
+        duration: 450,
+        action: function(){
+            for(var i = 0; i < 40; i++){
+                var x = (Math.random() - 0.5) * 250
+                var z = (Math.random() - 0.5) * 250
+                for(var r = -2; r <= 2; r++){
+                    for(var c = -2; c <= 2; c++){
+                        _G.World.SetBlock(Math.floor(x) + r, WORLD_Y + 1, Math.floor(z) + c, "obsidian")
+                    }
+                }
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "nether_star")
+            }
+        },
+        message: "§6Древние силы извергаются из земли!"
+    }
 ]
 
-var STRUCTURE_NAMES = {
-    "ancient_temple": "Древний Храм",
-    "elemental_shrine": "Святилище Стихий",
-    "dark_altar": "Тёмный Алтарь",
-    "mystic_tower": "Мистическая Башня",
-    "guardian_fortress": "Крепость Стража",
-    "sky_pillar": "Небесный Столп"
-}
-
-// ========== ВИЗУАЛЬНЫЕ ЭФФЕКТЫ (РЕДКИЕ) ==========
-
-function TriggerRareEffect(){
-    var effectType = Math.floor(Math.random() * 6)
-
-    switch(effectType){
-        case 0: // Вспышка в небе
-            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 1, 1, 0.8)
-            _G.Logger.Info("§eНебо озарилось яркой вспышкой!")
-            setTimeout(function(){
-                _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
-            }, 3000)
-            break
-
-        case 1: // Землетрясение (тряска камеры)
-            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset, 0.05, 0.05, 0.05)
-            _G.Logger.Info("§7Земля дрожит под ногами...")
-            setTimeout(function(){
-                _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
-            }, 2000)
-            break
-
-        case 2: // Тьма на секунду
-            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.05, 0.05, 0.1)
-            _G.Logger.Info("§8Мир поглотила тьма...")
-            setTimeout(function(){
-                _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
-            }, 1500)
-            break
-
-        case 3: // Кровавый оттенок
-            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.8, 0.2, 0.2)
-            _G.Logger.Info("§cНебо окрасилось в багровый цвет!")
-            setTimeout(function(){
-                _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
-            }, 4000)
-            break
-
-        case 4: // Искажение мира
-            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexRandom, 0.03, 0.03, 0.03)
-            _G.Logger.Info("§5Реальность искажается...")
-            setTimeout(function(){
-                _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexRandom)
-            }, 2500)
-            break
-
-        case 5: // Яркое солнце
-            _G.ApplyAnomaly(_G.Enum.Anomaly.SunSize, 50)
-            _G.Logger.Info("§6Солнце внезапно увеличилось!")
-            setTimeout(function(){
-                _G.ResetAnomaly(_G.Enum.Anomaly.SunSize)
-            }, 3000)
-            break
-    }
-}
-
-// ========== ГЕНЕРАЦИЯ СТРУКТУР (С НОРМАЛЬНЫМИ ID БЛОКОВ) ==========
-
-// ДРЕВНИЙ ХРАМ
-function GenerateAncientTemple(x, z){
-    var y = CENTER_Y
-
-    // Фундамент из каменных кирпичей
-    for(var ix = -8; ix <= 8; ix++){
-        for(var iz = -8; iz <= 8; iz++){
-            _G.World.SetBlock(x + ix, y, z + iz, "stone_bricks")
+// ========== БЫСТРЫЕ МАЛЫЕ ИВЕНТЫ ==========
+var MINI_EVENTS = [
+    {
+        name: "§7Камень падает с неба!",
+        action: function(){
+            var x = (Math.random() - 0.5) * 100
+            var z = (Math.random() - 0.5) * 100
+            _G.World.SetBlock(Math.floor(x), WORLD_Y + 5, Math.floor(z), "anvil")
         }
-    }
-
-    // Стены
-    for(var ix = -6; ix <= 6; ix++){
-        for(var iz = -6; iz <= 6; iz++){
-            if(Math.abs(ix) === 6 || Math.abs(iz) === 6){
-                for(var iy = 1; iy <= 5; iy++){
-                    _G.World.SetBlock(x + ix, y + iy, z + iz, "stone_bricks")
+    },
+    {
+        name: "§aТрава разрастается!",
+        action: function(){
+            for(var i = 0; i < 20; i++){
+                var x = (Math.random() - 0.5) * 80
+                var z = (Math.random() - 0.5) * 80
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "grass_block")
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "tall_grass")
+            }
+        }
+    },
+    {
+        name: "§3Маленький водопад!",
+        action: function(){
+            var x = (Math.random() - 0.5) * 90
+            var z = (Math.random() - 0.5) * 90
+            for(var h = 0; h < 5; h++){
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + h, Math.floor(z), "water")
+            }
+        }
+    },
+    {
+        name: "§eСпавн моба!",
+        action: function(){
+            for(var i = 0; i < 5; i++){
+                var x = (Math.random() - 0.5) * 70
+                var z = (Math.random() - 0.5) * 70
+                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "spawner")
+            }
+        }
+    },
+    {
+        name: "§cВулканический выброс!",
+        action: function(){
+            var x = (Math.random() - 0.5) * 100
+            var z = (Math.random() - 0.5) * 100
+            for(var r = -2; r <= 2; r++){
+                for(var c = -2; c <= 2; c++){
+                    if(Math.abs(r) === 2 || Math.abs(c) === 2){
+                        _G.World.SetBlock(Math.floor(x) + r, WORLD_Y + 1, Math.floor(z) + c, "magma_block")
+                    }
+                }
+            }
+            _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "lava")
+        }
+    },
+    {
+        name: "§8Тёмный всплеск!",
+        action: function(){
+            var x = (Math.random() - 0.5) * 80
+            var z = (Math.random() - 0.5) * 80
+            for(var r = -3; r <= 3; r++){
+                for(var c = -3; c <= 3; c++){
+                    if(Math.random() < 0.3){
+                        _G.World.SetBlock(Math.floor(x) + r, WORLD_Y, Math.floor(z) + c, "blackstone")
+                    }
                 }
             }
         }
-    }
-
-    // Колонны
-    var pillars = [[-5,-5], [-5,5], [5,-5], [5,5]]
-    for(var p = 0; p < pillars.length; p++){
-        var px = pillars[p][0]
-        var pz = pillars[p][1]
-        for(var ph = 1; ph <= 7; ph++){
-            _G.World.SetBlock(x + px, y + ph, z + pz, "quartz_pillar")
+    },
+    {
+        name: "§5Мистический цветок!",
+        action: function(){
+            var x = (Math.random() - 0.5) * 60
+            var z = (Math.random() - 0.5) * 60
+            for(var i = 0; i < 10; i++){
+                _G.World.SetBlock(Math.floor(x) + Math.floor((Math.random() - 0.5) * 10), WORLD_Y + 1, Math.floor(z) + Math.floor((Math.random() - 0.5) * 10), "allium")
+            }
         }
-        _G.World.SetBlock(x + px, y + 8, z + pz, "glowstone")
-    }
-
-    // Крыша
-    for(var ry = 6; ry <= 9; ry++){
-        var roofSize = 9 - ry
-        for(var ix = -roofSize; ix <= roofSize; ix++){
-            for(var iz = -roofSize; iz <= roofSize; iz++){
-                if(Math.abs(ix) === roofSize || Math.abs(iz) === roofSize){
-                    _G.World.SetBlock(x + ix, y + ry, z + iz, "stone_brick_stairs")
-                }
+    },
+    {
+        name: "§2Корни прорываются!",
+        action: function(){
+            var x = (Math.random() - 0.5) * 70
+            var z = (Math.random() - 0.5) * 70
+            for(var i = 0; i < 15; i++){
+                var dx = Math.floor((Math.random() - 0.5) * 15)
+                var dz = Math.floor((Math.random() - 0.5) * 15)
+                _G.World.SetBlock(Math.floor(x) + dx, WORLD_Y + 1, Math.floor(z) + dz, "oak_log")
             }
         }
     }
+]
 
-    // Алтарь в центре
-    _G.World.SetBlock(x, y + 1, z, "gold_block")
-    _G.World.SetBlock(x, y + 2, z, "beacon")
-    _G.World.SetBlock(x + 1, y + 1, z, "chest")
-    _G.World.SetBlock(x - 1, y + 1, z, "chest")
-}
+// ========== СТРУКТУРЫ ДЛЯ ВЫЖИВАНИЯ ==========
 
-// СВЯТИЛИЩЕ СТИХИЙ
-function GenerateElementalShrine(x, z){
-    var y = CENTER_Y
-
-    // Круглое основание
-    for(var angle = 0; angle < 360; angle += 15){
-        var rad = angle * Math.PI / 180
-        var rx = x + Math.cos(rad) * 7
-        var rz = z + Math.sin(rad) * 7
-        _G.World.SetBlock(Math.floor(rx), y, Math.floor(rz), "stone_bricks")
-        _G.World.SetBlock(Math.floor(rx), y + 1, Math.floor(rz), "polished_andesite")
-    }
-
-    // Элементальные пьедесталы
-    var elements = [
-        {dx: 5, dz: 0, block: "fire", name: "Огонь"},
-        {dx: -5, dz: 0, block: "water", name: "Вода"},
-        {dx: 0, dz: 5, block: "grass_block", name: "Земля"},
-        {dx: 0, dz: -5, block: "feather", name: "Воздух"}
-    ]
-
-    for(var e = 0; e < elements.length; e++){
-        var el = elements[e]
-        _G.World.SetBlock(x + el.dx, y + 1, z + el.dz, "quartz_block")
-        _G.World.SetBlock(x + el.dx, y + 2, z + el.dz, el.block)
-        _G.World.SetBlock(x + el.dx, y + 3, z + el.dz, "torch")
-    }
-
-    // Центральный кристалл
-    for(var cy = 1; cy <= 6; cy++){
-        _G.World.SetBlock(x, y + cy, z, "amethyst_block")
-    }
-    _G.World.SetBlock(x, y + 7, z, "end_crystal")
-}
-
-// ТЁМНЫЙ АЛТАРЬ
-function GenerateDarkAltar(x, z){
-    var y = CENTER_Y
-
-    // Искажённая земля
-    for(var ix = -6; ix <= 6; ix++){
-        for(var iz = -6; iz <= 6; iz++){
-            if(Math.random() < 0.5){
-                _G.World.SetBlock(x + ix, y, z + iz, "crimson_nylium")
-            } else {
-                _G.World.SetBlock(x + ix, y, z + iz, "netherrack")
-            }
+function GenerateSurvivalHut(x, z){
+    for(var ix = -2; ix <= 2; ix++){
+        for(var iz = -2; iz <= 2; iz++){
+            _G.World.SetBlock(x + ix, WORLD_Y, z + iz, "oak_planks")
         }
     }
-
-    // Стены из чёрного камня
-    for(var ix = -4; ix <= 4; ix++){
-        for(var iz = -4; iz <= 4; iz++){
-            if(Math.abs(ix) === 4 || Math.abs(iz) === 4){
-                for(var iy = 1; iy <= 4; iy++){
-                    _G.World.SetBlock(x + ix, y + iy, z + iz, "polished_blackstone_bricks")
-                }
-            }
-        }
+    for(var h = 1; h <= 3; h++){
+        _G.World.SetBlock(x - 2, WORLD_Y + h, z - 2, "oak_log")
+        _G.World.SetBlock(x - 2, WORLD_Y + h, z + 2, "oak_log")
+        _G.World.SetBlock(x + 2, WORLD_Y + h, z - 2, "oak_log")
+        _G.World.SetBlock(x + 2, WORLD_Y + h, z + 2, "oak_log")
     }
-
-    // Алтарь
-    for(var ax = -2; ax <= 2; ax++){
-        for(var az = -2; az <= 2; az++){
-            _G.World.SetBlock(x + ax, y + 1, z + az, "crying_obsidian")
-        }
+    for(var iy = 1; iy <= 2; iy++){
+        _G.World.SetBlock(x, WORLD_Y + iy, z, "crafting_table")
     }
-    _G.World.SetBlock(x, y + 2, z, "enchanting_table")
-    _G.World.SetBlock(x, y + 3, z, "nether_star")
-
-    // Души в ловушках
-    for(var s = 0; s < 8; s++){
-        var angle = s * Math.PI * 2 / 8
-        var sx = x + Math.cos(angle) * 5
-        var sz = z + Math.sin(angle) * 5
-        _G.World.SetBlock(Math.floor(sx), y + 1, Math.floor(sz), "soul_fire")
-    }
+    _G.World.SetBlock(x + 1, WORLD_Y + 1, z, "furnace")
+    _G.World.SetBlock(x - 1, WORLD_Y + 1, z, "chest")
+    _G.World.SetBlock(x, WORLD_Y + 3, z, "torch")
 }
 
-// МИСТИЧЕСКАЯ БАШНЯ
-function GenerateMysticTower(x, z){
-    var y = CENTER_Y
-    var height = 15
-
-    // Основание
+function GenerateOreVein(x, z){
+    var ores = ["coal_ore", "iron_ore", "gold_ore", "diamond_ore", "emerald_ore"]
+    var ore = ores[Math.floor(Math.random() * ores.length)]
     for(var ix = -3; ix <= 3; ix++){
         for(var iz = -3; iz <= 3; iz++){
-            _G.World.SetBlock(x + ix, y, z + iz, "purpur_block")
-        }
-    }
-
-    // Башня
-    for(var iy = 1; iy <= height; iy++){
-        var radius = iy < 5 ? 3 : iy < 10 ? 2 : 1
-        for(var ix = -radius; ix <= radius; ix++){
-            for(var iz = -radius; iz <= radius; iz++){
-                if(ix*ix + iz*iz <= radius*radius){
-                    var block = iy % 2 === 0 ? "purpur_block" : "end_stone_bricks"
-                    _G.World.SetBlock(x + ix, y + iy, z + iz, block)
-                }
-            }
-        }
-
-        // Окна
-        if(iy > 4 && iy % 3 === 0){
-            _G.World.SetBlock(x + radius, y + iy, z, "glass")
-            _G.World.SetBlock(x - radius, y + iy, z, "glass")
-            _G.World.SetBlock(x, y + iy, z + radius, "glass")
-            _G.World.SetBlock(x, y + iy, z - radius, "glass")
-        }
-    }
-
-    // Шпиль
-    for(var sp = height + 1; sp <= height + 4; sp++){
-        _G.World.SetBlock(x, y + sp, z, "iron_bars")
-    }
-    _G.World.SetBlock(x, y + height + 5, z, "end_rod")
-
-    // Книжные полки
-    for(var b = 1; b <= 4; b++){
-        _G.World.SetBlock(x + 2, y + b, z, "bookshelf")
-        _G.World.SetBlock(x - 2, y + b, z, "bookshelf")
-        _G.World.SetBlock(x, y + b, z + 2, "bookshelf")
-        _G.World.SetBlock(x, y + b, z - 2, "bookshelf")
-    }
-}
-
-// КРЕПОСТЬ СТРАЖА
-function GenerateGuardianFortress(x, z){
-    var y = CENTER_Y
-
-    // Стены
-    for(var ix = -10; ix <= 10; ix++){
-        for(var iz = -10; iz <= 10; iz++){
-            if(Math.abs(ix) === 10 || Math.abs(iz) === 10){
-                for(var iy = 1; iy <= 6; iy++){
-                    var block = iy % 2 === 0 ? "stone_bricks" : "mossy_stone_bricks"
-                    _G.World.SetBlock(x + ix, y + iy, z + iz, block)
-                }
-            }
-        }
-    }
-
-    // Башни по углам
-    var towers = [[-8,-8], [-8,8], [8,-8], [8,8]]
-    for(var t = 0; t < towers.length; t++){
-        var tx = towers[t][0]
-        var tz = towers[t][1]
-        for(var ty = 1; ty <= 8; ty++){
-            _G.World.SetBlock(x + tx, y + ty, z + tz, "stone_bricks")
-        }
-        _G.World.SetBlock(x + tx, y + 9, z + tz, "torch")
-    }
-
-    // Ворота
-    _G.World.SetBlock(x + 10, y + 3, z, "air")
-    _G.World.SetBlock(x + 10, y + 4, z, "air")
-    _G.World.SetBlock(x + 10, y + 5, z, "air")
-
-    // Хранилище в центре
-    _G.World.SetBlock(x, y + 1, z, "chest")
-    for(var gx = -1; gx <= 1; gx++){
-        for(var gz = -1; gz <= 1; gz++){
-            if(gx !== 0 || gz !== 0){
-                _G.World.SetBlock(x + gx, y + 1, z + gz, "iron_block")
-            }
-        }
-    }
-}
-
-// НЕБЕСНЫЙ СТОЛП
-function GenerateSkyPillar(x, z){
-    var y = CENTER_Y
-    var height = 20
-
-    // Колонна
-    for(var iy = 1; iy <= height; iy++){
-        var radius = iy < 5 ? 4 : iy < 10 ? 3 : iy < 15 ? 2 : 1
-        for(var ix = -radius; ix <= radius; ix++){
-            for(var iz = -radius; iz <= radius; iz++){
-                if(ix*ix + iz*iz <= radius*radius){
-                    var block = iy === height ? "gold_block" : "quartz_block"
-                    _G.World.SetBlock(x + ix, y + iy, z + iz, block)
-                }
-            }
-        }
-
-        // Светящиеся кольца
-        if(iy % 4 === 0 && iy > 4){
-            for(var a = 0; a < 360; a += 30){
-                var rad = a * Math.PI / 180
-                var rx = x + Math.cos(rad) * (radius + 1)
-                var rz = z + Math.sin(rad) * (radius + 1)
-                _G.World.SetBlock(Math.floor(rx), y + iy, Math.floor(rz), "glowstone")
-            }
-        }
-    }
-
-    // Платформа на вершине
-    for(var px = -2; px <= 2; px++){
-        for(var pz = -2; pz <= 2; pz++){
-            _G.World.SetBlock(x + px, y + height + 1, z + pz, "gold_block")
-        }
-    }
-    _G.World.SetBlock(x, y + height + 2, z, "beacon")
-}
-
-// ========== МАЛЫЕ СТРУКТУРЫ ==========
-
-function GenerateRuins(x, z){
-    var y = CENTER_Y
-    for(var ix = -3; ix <= 3; ix++){
-        for(var iz = -3; iz <= 3; iz++){
-            if(Math.random() < 0.3){
-                _G.World.SetBlock(x + ix, y, z + iz, "cracked_stone_bricks")
-                if(Math.random() < 0.2){
-                    _G.World.SetBlock(x + ix, y + 1, z + iz, "mossy_cobblestone")
+            if(Math.random() < 0.4){
+                _G.World.SetBlock(x + ix, WORLD_Y, z + iz, ore)
+                if(Math.random() < 0.3){
+                    _G.World.SetBlock(x + ix, WORLD_Y + 1, z + iz, ore)
                 }
             }
         }
     }
 }
 
-function GenerateWatchtower(x, z){
-    var y = CENTER_Y
-    for(var wy = 1; wy <= 6; wy++){
-        _G.World.SetBlock(x, y + wy, z, "cobblestone")
-    }
-    for(var wx = -1; wx <= 1; wx++){
-        for(var wz = -1; wz <= 1; wz++){
-            if(wx !== 0 || wz !== 0){
-                _G.World.SetBlock(x + wx, y + 6, z + wz, "cobblestone_wall")
+function GeneratePond(x, z){
+    var radius = 3 + Math.floor(Math.random() * 3)
+    for(var ix = -radius; ix <= radius; ix++){
+        for(var iz = -radius; iz <= radius; iz++){
+            if(ix*ix + iz*iz <= radius*radius){
+                _G.World.SetBlock(x + ix, WORLD_Y, z + iz, "water")
+                _G.World.SetBlock(x + ix, WORLD_Y - 1, z + iz, "clay")
             }
         }
     }
-    _G.World.SetBlock(x, y + 7, z, "torch")
+    for(var f = 0; f < 5; f++){
+        var fx = x + Math.floor((Math.random() - 0.5) * radius)
+        var fz = z + Math.floor((Math.random() - 0.5) * radius)
+        _G.World.SetBlock(fx, WORLD_Y + 1, fz, "lily_pad")
+    }
 }
 
-function GenerateChestRuins(x, z){
-    var y = CENTER_Y
-    _G.World.SetBlock(x, y, z, "chest")
-    for(var gx = -1; gx <= 1; gx++){
-        for(var gz = -1; gz <= 1; gz++){
-            if((gx !== 0 || gz !== 0) && Math.random() < 0.5){
-                _G.World.SetBlock(x + gx, y, z + gz, "spawner")
-            }
+function GenerateTreeCluster(x, z){
+    for(var t = 0; t < 5; t++){
+        var tx = x + Math.floor((Math.random() - 0.5) * 10)
+        var tz = z + Math.floor((Math.random() - 0.5) * 10)
+        for(var h = 1; h <= 4; h++){
+            _G.World.SetBlock(tx, WORLD_Y + h, tz, "oak_log")
         }
+        _G.World.SetBlock(tx, WORLD_Y + 5, tz, "oak_leaves")
+        _G.World.SetBlock(tx + 1, WORLD_Y + 4, tz, "oak_leaves")
+        _G.World.SetBlock(tx - 1, WORLD_Y + 4, tz, "oak_leaves")
+        _G.World.SetBlock(tx, WORLD_Y + 4, tz + 1, "oak_leaves")
+        _G.World.SetBlock(tx, WORLD_Y + 4, tz - 1, "oak_leaves")
     }
 }
 
@@ -395,117 +324,145 @@ function GenerateChestRuins(x, z){
 function GenerateWorld(){
     structures = []
     _G.Logger.Info("§2========== ГЕНЕРАЦИЯ МИРА ==========")
-    _G.Logger.Info("§7Центр: " + CENTER_X + ", " + CENTER_Z + ", " + CENTER_Y)
-    _G.Logger.Info("§7Радиус: " + WORLD_RADIUS + " блоков")
 
-    var total = 0
+    var totalStructures = 0
+    var radius = 500
 
-    // Генерируем структуры кольцами
-    for(var dist = 200; dist <= WORLD_RADIUS; dist += 120){
-        var count = Math.floor(dist / 60) + 2
+    // Храмы и крупные структуры
+    var templeTypes = [
+        {name: "Каменный Храм", func: function(x,z){ GenerateSurvivalHut(x,z); for(var i=0;i<3;i++) GenerateOreVein(x+5,z+5); }},
+        {name: "Рудная Жила", func: function(x,z){ for(var i=0;i<5;i++) GenerateOreVein(x+Math.random()*10-5, z+Math.random()*10-5); }},
+        {name: "Лесной Оазис", func: function(x,z){ GeneratePond(x,z); GenerateTreeCluster(x,z); }},
+        {name: "Заброшенная Шахта", func: function(x,z){ for(var i=0;i<8;i++){ var sx=x+Math.random()*20-10; var sz=z+Math.random()*20-10; _G.World.SetBlock(Math.floor(sx), WORLD_Y+1, Math.floor(sz), "rail"); } }}
+    ]
 
+    for(var angle = 0; angle < 360; angle += 45){
+        var rad = angle * Math.PI / 180
+        var dist = 150
+        var x = Math.cos(rad) * dist
+        var z = Math.sin(rad) * dist
+
+        var type = templeTypes[Math.floor(Math.random() * templeTypes.length)]
+        type.func(Math.floor(x), Math.floor(z))
+        structures.push({x: Math.floor(x), z: Math.floor(z), name: type.name})
+        totalStructures++
+    }
+
+    for(var dist = 200; dist <= radius; dist += 100){
+        var count = Math.floor(dist / 50)
         for(var i = 0; i < count; i++){
-            var angle = (Math.random() * 360) * Math.PI / 180
-            var x = CENTER_X + Math.cos(angle) * (dist + (Math.random() - 0.5) * 40)
-            var z = CENTER_Z + Math.sin(angle) * (dist + (Math.random() - 0.5) * 40)
+            var angle = Math.random() * Math.PI * 2
+            var x = Math.cos(angle) * (dist + Math.random() * 50)
+            var z = Math.sin(angle) * (dist + Math.random() * 50)
 
-            var typeIndex = Math.floor(Math.random() * STRUCTURE_TYPES.length)
-            var type = STRUCTURE_TYPES[typeIndex]
-            var name = STRUCTURE_NAMES[type]
-
-            switch(type){
-                case "ancient_temple":
-                    GenerateAncientTemple(Math.floor(x), Math.floor(z))
-                    break
-                case "elemental_shrine":
-                    GenerateElementalShrine(Math.floor(x), Math.floor(z))
-                    break
-                case "dark_altar":
-                    GenerateDarkAltar(Math.floor(x), Math.floor(z))
-                    break
-                case "mystic_tower":
-                    GenerateMysticTower(Math.floor(x), Math.floor(z))
-                    break
-                case "guardian_fortress":
-                    GenerateGuardianFortress(Math.floor(x), Math.floor(z))
-                    break
-                case "sky_pillar":
-                    GenerateSkyPillar(Math.floor(x), Math.floor(z))
-                    break
-            }
-
-            structures.push({
-                x: Math.floor(x),
-                z: Math.floor(z),
-                type: name,
-                notified: false
-            })
-            total++
-
-            // Маленькие структуры вокруг
-            for(var s = 0; s < 2; s++){
-                var subAngle = angle + (Math.random() - 0.5) * 0.8
-                var subDist = dist + (Math.random() - 0.5) * 50
-                var sx = CENTER_X + Math.cos(subAngle) * subDist
-                var sz = CENTER_Z + Math.sin(subAngle) * subDist
-
-                var small = Math.floor(Math.random() * 3)
-                if(small === 0) GenerateRuins(Math.floor(sx), Math.floor(sz))
-                if(small === 1) GenerateWatchtower(Math.floor(sx), Math.floor(sz))
-                if(small === 2) GenerateChestRuins(Math.floor(sx), Math.floor(sz))
-            }
+            var type = templeTypes[Math.floor(Math.random() * templeTypes.length)]
+            type.func(Math.floor(x), Math.floor(z))
+            structures.push({x: Math.floor(x), z: Math.floor(z), name: type.name})
+            totalStructures++
         }
     }
 
-    _G.Logger.Info("§a========== ГЕНЕРАЦИЯ ЗАВЕРШЕНА ==========")
-    _G.Logger.Info("§aВсего структур: " + total)
-    return total
+    _G.Logger.Info("§aСгенерировано структур: " + totalStructures)
+    _G.Logger.Info("§7Радиус мира: " + radius + " блоков")
+    _G.Logger.Info("§7Высота: " + WORLD_Y)
+
+    return totalStructures
 }
 
-// ========== ОПОВЕЩЕНИЯ ==========
+// ========== ЗАПУСК ИВЕНТОВ ==========
 
-function CheckProximity(){
-    // Координаты игроков (центр для обоих, так как данные не получить)
-    var player1X = 0
-    var player1Z = 0
-    var player2X = 0
-    var player2Z = 0
+function TriggerRandomEvent(){
+    if(ACTIVE_EVENT !== null) return
 
-    for(var s = 0; s < structures.length; s++){
-        var struct = structures[s]
-        var dist1 = Math.sqrt(Math.pow(player1X - struct.x, 2) + Math.pow(player1Z - struct.z, 2))
-        var dist2 = Math.sqrt(Math.pow(player2X - struct.x, 2) + Math.pow(player2Z - struct.z, 2))
+    var roll = Math.random()
+    var cumulative = 0
 
-        if(dist1 < 60 && !struct.notified){
-            _G.Logger.Info("§eИгрок в центре обнаружил: §6" + struct.type + "§e (" + struct.x + ", " + struct.z + ")")
-            struct.notified = true
-            TriggerRareEffect()
-        }
-
-        if(dist2 < 60 && !struct.notified2){
-            _G.Logger.Info("§eВторой игрок обнаружил: §6" + struct.type + "§e (" + struct.x + ", " + struct.z + ")")
-            struct.notified2 = true
-            TriggerRareEffect()
+    for(var i = 0; i < EVENTS.length; i++){
+        cumulative += EVENTS[i].chance
+        if(roll < cumulative){
+            ACTIVE_EVENT = EVENTS[i]
+            EVENT_DURATION = ACTIVE_EVENT.duration
+            _G.Logger.Info("§l§m====================§r")
+            _G.Logger.Info(ACTIVE_EVENT.name)
+            _G.Logger.Info(ACTIVE_EVENT.message)
+            _G.Logger.Info("§l§m====================§r")
+            ACTIVE_EVENT.action()
+            break
         }
     }
+}
+
+function TriggerMiniEvent(){
+    var event = MINI_EVENTS[Math.floor(Math.random() * MINI_EVENTS.length)]
+    _G.Logger.Info("§7[Событие] " + event.name)
+    event.action()
 }
 
 // ========== ОСНОВНОЙ ЦИКЛ ==========
-var tickCounter = 0
+var tick = 0
+var miniEventCooldown = 0
 
 _G.SetEvent(_G.Enum.Event.ServerTick, function(End){
     if(!End) return
 
-    tickCounter++
+    tick++
+    EVENT_TIMER++
+    miniEventCooldown++
 
-    // Редкие эффекты (раз в 10-30 секунд)
-    if(tickCounter % 300 === 0 && Math.random() < 0.3){
-        TriggerRareEffect()
+    // Крупные ивенты (каждые 15-30 секунд)
+    if(EVENT_TIMER >= 300 && ACTIVE_EVENT === null){
+        EVENT_TIMER = 0
+        if(Math.random() < 0.4){
+            TriggerRandomEvent()
+        }
     }
 
-    // Проверка близости каждые 3 секунды
-    if(tickCounter % 60 === 0){
-        CheckProximity()
+    // Завершение активного ивента
+    if(ACTIVE_EVENT !== null){
+        if(EVENT_TIMER >= EVENT_DURATION){
+            _G.Logger.Info("§8Ивент '" + ACTIVE_EVENT.name.replace(/§[0-9a-z]/gi, '') + "' завершился...")
+            ACTIVE_EVENT = null
+            EVENT_TIMER = 0
+        }
+    }
+
+    // Малые ивенты (каждые 5-10 секунд)
+    if(miniEventCooldown >= 80 && ACTIVE_EVENT === null){
+        miniEventCooldown = 0
+        if(Math.random() < 0.5){
+            TriggerMiniEvent()
+        }
+    }
+
+    // Случайные генерации (каждые 3-5 секунд)
+    if(tick % 60 === 0 && Math.random() < 0.3){
+        var x = (Math.random() - 0.5) * 400
+        var z = (Math.random() - 0.5) * 400
+        var genType = Math.floor(Math.random() * 4)
+        if(genType === 0) GenerateOreVein(Math.floor(x), Math.floor(z))
+        if(genType === 1) GenerateTreeCluster(Math.floor(x), Math.floor(z))
+        if(genType === 2) GeneratePond(Math.floor(x), Math.floor(z))
+        if(genType === 3) GenerateSurvivalHut(Math.floor(x), Math.floor(z))
+    }
+})
+
+// ========== ОПОВЕЩЕНИЯ ДЛЯ ИГРОКОВ ==========
+var lastCheck = 0
+
+_G.SetEvent(_G.Enum.Event.ServerTick, function(End){
+    if(!End) return
+
+    lastCheck++
+    if(lastCheck < 100) return
+    lastCheck = 0
+
+    // Игрок 1 (центр)
+    for(var s = 0; s < structures.length; s++){
+        var dist = Math.sqrt(structures[s].x * structures[s].x + structures[s].z * structures[s].z)
+        if(dist < 80 && !structures[s].notified){
+            _G.Logger.Info("§eТы нашёл: §6" + structures[s].name + "§e на расстоянии " + Math.floor(dist))
+            structures[s].notified = true
+        }
     }
 })
 
@@ -513,56 +470,50 @@ _G.SetEvent(_G.Enum.Event.ServerTick, function(End){
 
 _G.GenerateWorld = function(){
     var count = GenerateWorld()
-    _G.Logger.Info("§aСгенерировано " + count + " структур!")
+    _G.Logger.Info("§aГотово! Сгенерировано " + count + " структур")
+    _G.Logger.Info("§7Для двух игроков | Центр: 0, " + WORLD_Y + ", 0")
 }
 
-_G.ListStructures = function(){
-    _G.Logger.Info("§6Список структур (" + structures.length + "):")
-    for(var s = 0; s < structures.length; s++){
-        _G.Logger.Info("  §7- " + structures[s].type + " §8(" + structures[s].x + ", " + structures[s].z + ")")
+_G.ListEvents = function(){
+    _G.Logger.Info("§6Доступные ивенты:")
+    for(var i = 0; i < EVENTS.length; i++){
+        _G.Logger.Info("  §7- " + EVENTS[i].name.replace(/§[0-9a-z]/gi, '') + " (шанс: " + (EVENTS[i].chance * 100) + "%)")
     }
 }
 
-_G.NearestStructure = function(){
-    if(structures.length === 0){
-        _G.Logger.Info("§cНет сгенерированных структур. Используйте _G.GenerateWorld()")
-        return
-    }
-
-    var nearest = structures[0]
-    var nearestDist = Math.sqrt(Math.pow(0 - nearest.x, 2) + Math.pow(0 - nearest.z, 2))
-
-    for(var s = 1; s < structures.length; s++){
-        var dist = Math.sqrt(Math.pow(0 - structures[s].x, 2) + Math.pow(0 - structures[s].z, 2))
-        if(dist < nearestDist){
-            nearestDist = dist
-            nearest = structures[s]
+_G.ForceEvent = function(index){
+    if(index >= 0 && index < EVENTS.length){
+        if(ACTIVE_EVENT !== null){
+            _G.Logger.Info("§cСейчас активен другой ивент!")
+            return
         }
+        ACTIVE_EVENT = EVENTS[index]
+        EVENT_DURATION = ACTIVE_EVENT.duration
+        EVENT_TIMER = 0
+        _G.Logger.Info("§l§m====================§r")
+        _G.Logger.Info(ACTIVE_EVENT.name)
+        _G.Logger.Info(ACTIVE_EVENT.message)
+        _G.Logger.Info("§l§m====================§r")
+        ACTIVE_EVENT.action()
+    } else {
+        _G.Logger.Info("§cНеверный индекс! Используйте 0-" + (EVENTS.length-1))
     }
-
-    _G.Logger.Info("§aБлижайшая структура к центру: §6" + nearest.type)
-    _G.Logger.Info("§7Расстояние: " + Math.floor(nearestDist) + " блоков")
-    _G.Logger.Info("§7Координаты: " + nearest.x + ", " + nearest.z)
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 _G.SetEvent(_G.Enum.Event.JSReload, function(End){
     if(End){
-        _G.Logger.Info("§8=== ДРЕВНИЕ СТРАЖИ ВЫГРУЖЕНЫ ===")
-        _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
-        _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
-        _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexRandom)
-        _G.ResetAnomaly(_G.Enum.Anomaly.SunSize)
+        _G.Logger.Info("§8=== ЖИВОЙ МИР ВЫГРУЖЕН ===")
     } else {
-        _G.Logger.Info("§6§l=== ДРЕВНИЕ СТРАЖИ ===")
-        _G.Logger.Info("§7Радиус мира: " + WORLD_RADIUS + " блоков")
-        _G.Logger.Info("§7Центр: 0, 60, 0")
+        _G.Logger.Info("§2§l=== ЖИВОЙ МИР ===")
+        _G.Logger.Info("§7Высота: " + WORLD_Y)
+        _G.Logger.Info("§7События происходят постоянно!")
         _G.Logger.Info("§aКоманды:")
-        _G.Logger.Info("  §e_G.GenerateWorld() §7- сгенерировать мир")
-        _G.Logger.Info("  §e_G.ListStructures() §7- список структур")
-        _G.Logger.Info("  §e_G.NearestStructure() §7- ближайшая структура")
+        _G.Logger.Info("  §e_G.GenerateWorld() §7- генерация мира")
+        _G.Logger.Info("  §e_G.ListEvents() §7- список ивентов")
+        _G.Logger.Info("  §e_G.ForceEvent(индекс) §7- принудительный ивент")
     }
 })
 
-_G.Logger.Info("§6=== ДРЕВНИЕ СТРАЖИ ЗАГРУЖЕНЫ ===")
-_G.Logger.Info("§7Введите §e_G.GenerateWorld() §7для генерации")
+_G.Logger.Info("§2=== ЖИВОЙ МИР ЗАГРУЖЕН ===")
+_G.Logger.Info("§7Введите §e_G.GenerateWorld() §7для начала")
