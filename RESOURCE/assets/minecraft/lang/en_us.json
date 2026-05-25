@@ -1,5 +1,6 @@
 {
   "w.agree"        : "AGREE",
   "w.access_denied": "ACCESS DENIED",
+  "w.no_internet"  : "NO INTERNET",
   "w.warning"      : "⚠ WARNING ⚠"
 }

@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 set "SourceFolder1=DATA"
 set "ZipFile1=DATA.zip"
@@ -19,9 +19,9 @@ if exist "%VersionFile%" (
 echo Version updated to: %Version%
 
 REM ZIP 1
-if exist "%ZipFile1%" del "%ZipFile1%"
 if exist "%SourceFolder1%" (
 	echo Zipping %ZipFile1%...
+	if exist "%ZipFile1%" del "%ZipFile1%"
 	pushd "%SourceFolder1%"
 	7z a -tzip "..\%ZipFile1%" * -mx=1 -mmt=on -r -bb0
 	popd
@@ -31,13 +31,27 @@ if exist "%SourceFolder1%" (
 )
 
 REM ZIP 2
-if exist "%ZipFile2%" del "%ZipFile2%"
 if exist "%SourceFolder2%" (
-	echo Zipping %ZipFile2%...
-	pushd "%SourceFolder2%"
-	7z a -tzip "..\%ZipFile2%" * -mx=1 -mmt=on -r -bb0
-	popd
-	echo %ZipFile2% created
+	set "BUSY=0"
+	
+	if exist "%ZipFile2%" (
+		rename "%ZipFile2%" "%ZipFile2%.locked" 2>nul
+		if errorlevel 1 (
+			set "BUSY=1"
+			echo WARNING: "%ZipFile2%" is busy! Skipping...
+		) else (
+			rename "%ZipFile2%.locked" "%ZipFile2%" 2>nul
+		)
+	)
+	
+	if "!BUSY!"=="0" (
+		echo Zipping %ZipFile2%...
+		if exist "%ZipFile2%" del "%ZipFile2%"
+		pushd "%SourceFolder2%"
+		7z a -tzip "..\%ZipFile2%" * -mx=1 -mmt=on -r -bb0
+		popd
+		echo %ZipFile2% created
+	)
 ) else (
 	echo WARNING: %SourceFolder2% not found!
 )
