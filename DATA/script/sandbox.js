@@ -1,50 +1,113 @@
-var j = 0
+// ========== ЭФФЕКТ "СХОЖДЕНИЕ МИРОВ" ==========
+
+var time = 0
+var chaosLevel = 0
+
+// Небо пульсирует всеми цветами радуги
 _G.SetEvent(_G.Enum.Event.ClientTick, function(End){
     if(!End){ return }
 
-    j++
+    time++
 
-    _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, _G.DSin(j/15), _G.DSin(j/10), _G.DSin(j/20))
+    // Радужное небо (цикл RGB)
+    var r = _G.DSin(time / 30)
+    var g = _G.DSin((time + 40) / 30)
+    var b = _G.DSin((time + 80) / 30)
+    _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, r, g, b)
+
+    // Солнце и луна меняются в противофазе
+    var sunSize = 20 + _G.DSin(time / 20) * 40
+    var moonSize = 20 + _G.DCos(time / 20) * 40
+    _G.ApplyAnomaly(_G.Enum.Anomaly.SunSize, sunSize)
+    _G.ApplyAnomaly(_G.Enum.Anomaly.MoonSize, moonSize)
+
+    // Облака сходят с ума
+    _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSpeed, 2 + _G.DSin(time / 10) * 3)
+    _G.ApplyAnomaly(_G.Enum.Anomaly.CloudHeight, _G.DSin(time / 25) * 20)
+    _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSize, 5 + _G.DSin(time / 15) * 7, 1, 5 + _G.DCos(time / 15) * 7)
+
+    // Искажение вершин (мир плавится)
+    _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset,
+        _G.DSin(time / 10) * 0.05,
+        _G.DSin(time / 13) * 0.05,
+        _G.DSin(time / 11) * 0.05
+    )
+
+    _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexRandom,
+        _G.DSin(time / 7) * 0.1,
+        _G.DSin(time / 9) * 0.1,
+        _G.DSin(time / 8) * 0.1
+    )
 })
 
+// Включаем странное небо Энда
 _G.ApplyAnomaly(_G.Enum.Anomaly.SkyRender, _G.Enum.SkyRender.End)
-_G.ApplyAnomaly(_G.Enum.Anomaly.SkyEndTiles, 1)
+_G.ApplyAnomaly(_G.Enum.Anomaly.SkyEndTiles, 8)
 _G.ApplyAnomaly(_G.Enum.Anomaly.SkyEndTexture, _G.ResourceLocation(_G.Constant.TempID, "textures/test.png"))
 
-var i = 0
+// Звёзды исчезают
+_G.ApplyAnomaly(_G.Enum.Anomaly.StarsVisible, false)
+
+// ========== ХАОТИЧЕСКАЯ ГЕНЕРАЦИЯ ==========
+
+var spiralAngle = 0
+var blocksList = [
+    "minecraft:gold_block",
+    "minecraft:diamond_block",
+    "minecraft:emerald_block",
+    "minecraft:redstone_block",
+    "minecraft:lapis_block",
+    "minecraft:obsidian",
+    "minecraft:glowstone",
+    "minecraft:tnt",
+    "minecraft:magma_block",
+    "minecraft:blue_ice"
+]
+
 _G.SetEvent(_G.Enum.Event.ServerTick, function(End){
     if(!End){ return }
 
-    i++
+    chaosLevel++
+    if(chaosLevel < 10){ return }
+    chaosLevel = 0
 
-    if(i <= 20){ return } i = 0
+    spiralAngle = (spiralAngle + 15) % 360
 
-    var pos = [0, 81, 0]
+    // Центр хаоса
+    var centerX = 0
+    var centerZ = 0
 
-    var dist = 70
+    // Радиус увеличивается со временем
+    var radius = (Math.floor(Date.now() / 5000) % 20) + 10
+    var angleRad = spiralAngle * Math.PI / 180
 
-    var blocks = [
-        "minecraft:gold_block",
-        "minecraft:diamond_block",
-        "minecraft:emerald_block",
-        "minecraft:iron_block",
-        "minecraft:coal_block",
-        "minecraft:redstone_block",
-        "minecraft:lapis_block",
-        "minecraft:netherite_block",
-        "minecraft:obsidian",
-        "minecraft:ancient_debris",
-        "minecraft:glowstone",
-        "minecraft:tnt"
-    ]
+    for(var i = 0; i < 300; i++){
+        // Случайный радиус от 0 до максимума
+        var r = Math.random() * radius
+        var a = angleRad + (Math.random() - 0.5) * 1.5
 
-    _G.Logger.Info("GO " + _G.Random.Random())
+        var X = centerX + Math.cos(a) * r
+        var Z = centerZ + Math.sin(a) * r
+        var Y = 70 + Math.random() * 40 // Случайная высота
 
-    for(var j = 0; j < 5000; j++){
-        var X = pos[0] + _G.Random.RandomInt(-dist, dist);
-        var Y = pos[1] + _G.Random.RandomInt(-dist, dist);
-        var Z = pos[2] + _G.Random.RandomInt(-dist, dist);
+        // Спиральная стена из блоков
+        var block = blocksList[Math.floor(Math.random() * blocksList.length)]
+        _G.World.SetBlock(Math.floor(X), Math.floor(Y), Math.floor(Z), block)
+    }
 
-        _G.World.SetBlock(X, Y, Z, _G.Random.FromArray(blocks))
+    // Специальная спираль
+    for(var s = 0; s < 100; s++){
+        var t = (spiralAngle + s * 10) % 360
+        var rad = t * Math.PI / 180
+        var dist = (spiralAngle + s) % radius
+
+        var X = centerX + Math.cos(rad) * dist
+        var Z = centerZ + Math.sin(rad) * dist
+        var Y = 70 + Math.sin(rad * 5) * 15
+
+        _G.World.SetBlock(Math.floor(X), Math.floor(Y), Math.floor(Z), "minecraft:glowstone")
     }
 })
+
+_G.Logger.Info("=== ЭФФЕКТ 'СХОЖДЕНИЕ МИРОВ' АКТИВИРОВАН ===")
+_G.Logger.Info("Небо пульсирует, мир искажается, растёт спираль хаоса")
