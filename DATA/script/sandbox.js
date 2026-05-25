@@ -1,90 +1,102 @@
 // ============================================================
-// HORROR CORE SCRIPT
-// Weird world events / glitches / structures
+// GOLU HORROR SYSTEM
+// Rhino-compatible
 // ============================================================
 
-_G.Logger.Anyway("Horror script loaded.");
+_G.Logger.Anyway("SYSTEM ONLINE")
 
-// ------------------------------------------------------------
-// CONFIG
-// ------------------------------------------------------------
+var CENTER_X = 0
+var CENTER_Y = -2
+var CENTER_Z = 0
 
-const CENTER_X = 0;
-const CENTER_Y = -2;
-const CENTER_Z = 0;
+var Tick = 0
+var NextEvent = 600
+var GlitchTick = 0
 
-const EVENTS_MIN_DELAY = 20 * 25; // ~25 sec
-const EVENTS_MAX_DELAY = 20 * 70; // ~70 sec
-
-let Tick = 0;
-let NextEvent = RandomRange(EVENTS_MIN_DELAY, EVENTS_MAX_DELAY);
-
-// ------------------------------------------------------------
-// UTILS
-// ------------------------------------------------------------
+var Messages = [
+    "DO NOT GO TO THE CENTER",
+    "YOU ARE OBSERVED",
+    "SOMETHING EXISTS BELOW",
+    "THE SKY IS OPEN",
+    "THE WORLD IS CORRUPTED",
+    "ERROR DETECTED",
+    "TURN OFF THE LIGHTS",
+    "DO NOT TRUST THE MOON",
+    "YOU SHOULD LEAVE",
+    "THE FOG IS MOVING",
+    "REALITY FAILURE",
+    "IT FOUND YOU",
+    "LOOK BEHIND YOU",
+    "THE NOISE IS GETTING CLOSER",
+    "YOU ARE NOT ALONE",
+    "THEY ARE INSIDE"
+]
 
 function RandomRange(Min, Max){
-    return Math.floor(Math.random() * (Max - Min + 1)) + Min;
+    return Math.floor(Math.random() * (Max - Min + 1)) + Min
 }
 
 function Chance(Value){
-    return Math.random() <= Value;
+    return Math.random() <= Value
 }
 
 function RandomFloat(Min, Max){
-    return Math.random() * (Max - Min) + Min;
+    return Math.random() * (Max - Min) + Min
 }
 
 function Log(Message){
-    _G.Logger.Info("[HORROR] " + Message);
+    _G.Logger.Info("[HORROR] " + Message)
 }
 
-// ------------------------------------------------------------
-// STRUCTURE GENERATION
-// ------------------------------------------------------------
+// ============================================================
+// STRUCTURES
+// ============================================================
 
 function GenerateCross(X, Y, Z){
-    let B = "minecraft:black_concrete";
 
-    for(let i = -4; i <= 4; i++){
-        _G.World.SetBlock(X, Y + i, Z, B);
+    var Block = "minecraft:black_concrete"
+
+    for(var i = -8; i <= 8; i++){
+        _G.World.SetBlock(X, Y + i, Z, Block)
     }
 
-    for(let i = -2; i <= 2; i++){
-        _G.World.SetBlock(X + i, Y + 1, Z, B);
+    for(var i = -4; i <= 4; i++){
+        _G.World.SetBlock(X + i, Y + 2, Z, Block)
     }
 }
 
 function GenerateCube(X, Y, Z){
-    let B = "minecraft:redstone_block";
 
-    for(let xx = -2; xx <= 2; xx++){
-        for(let yy = -2; yy <= 2; yy++){
-            for(let zz = -2; zz <= 2; zz++){
+    var Block = "minecraft:redstone_block"
 
-                let Edge =
-                    Math.abs(xx) == 2 ||
-                    Math.abs(yy) == 2 ||
-                    Math.abs(zz) == 2;
+    for(var xx = -4; xx <= 4; xx++){
+        for(var yy = -4; yy <= 4; yy++){
+            for(var zz = -4; zz <= 4; zz++){
+
+                var Edge =
+                    Math.abs(xx) == 4 ||
+                    Math.abs(yy) == 4 ||
+                    Math.abs(zz) == 4
 
                 if(Edge){
-                    _G.World.SetBlock(X + xx, Y + yy, Z + zz, B);
+                    _G.World.SetBlock(X + xx, Y + yy, Z + zz, Block)
                 }
             }
         }
     }
 }
 
-function GeneratePillarField(X, Y, Z){
-    let B = "minecraft:stone";
+function GeneratePillars(X, Y, Z){
 
-    for(let xx = -8; xx <= 8; xx += 4){
-        for(let zz = -8; zz <= 8; zz += 4){
+    var Block = "minecraft:stone"
 
-            let Height = RandomRange(3, 12);
+    for(var xx = -16; xx <= 16; xx += 4){
+        for(var zz = -16; zz <= 16; zz += 4){
 
-            for(let yy = 0; yy < Height; yy++){
-                _G.World.SetBlock(X + xx, Y + yy, Z + zz, B);
+            var Height = RandomRange(4, 20)
+
+            for(var yy = 0; yy <= Height; yy++){
+                _G.World.SetBlock(X + xx, Y + yy, Z + zz, Block)
             }
         }
     }
@@ -92,308 +104,329 @@ function GeneratePillarField(X, Y, Z){
 
 function GenerateEye(X, Y, Z){
 
-    let White = "minecraft:white_concrete";
-    let Black = "minecraft:black_concrete";
-    let Red   = "minecraft:red_concrete";
+    var White = "minecraft:white_concrete"
+    var Red = "minecraft:red_concrete"
+    var Black = "minecraft:black_concrete"
 
-    for(let xx = -5; xx <= 5; xx++){
-        for(let zz = -2; zz <= 2; zz++){
+    for(var xx = -7; xx <= 7; xx++){
+        for(var zz = -3; zz <= 3; zz++){
 
-            let Dist =
-                (xx * xx) / 25 +
-                (zz * zz) / 4;
+            var Dist =
+                (xx * xx) / 49 +
+                (zz * zz) / 9
 
             if(Dist <= 1){
-                _G.World.SetBlock(X + xx, Y, Z + zz, White);
+                _G.World.SetBlock(X + xx, Y, Z + zz, White)
             }
         }
     }
 
-    for(let xx = -2; xx <= 2; xx++){
-        for(let zz = -1; zz <= 1; zz++){
-            _G.World.SetBlock(X + xx, Y, Z + zz, Red);
+    for(var xx = -2; xx <= 2; xx++){
+        for(var zz = -1; zz <= 1; zz++){
+            _G.World.SetBlock(X + xx, Y, Z + zz, Red)
         }
     }
 
-    _G.World.SetBlock(X, Y, Z, Black);
+    _G.World.SetBlock(X, Y, Z, Black)
+}
+
+function GenerateTunnel(X, Y, Z){
+
+    var Block = "minecraft:black_concrete"
+
+    for(var i = 0; i < 30; i++){
+
+        _G.World.SetBlock(X + i, Y, Z, Block)
+        _G.World.SetBlock(X + i, Y + 3, Z, Block)
+
+        _G.World.SetBlock(X + i, Y + 1, Z + 1, Block)
+        _G.World.SetBlock(X + i, Y + 1, Z - 1, Block)
+
+        _G.World.SetBlock(X + i, Y + 2, Z + 1, Block)
+        _G.World.SetBlock(X + i, Y + 2, Z - 1, Block)
+    }
 }
 
 function GenerateRandomStructure(){
 
-    let X = CENTER_X + RandomRange(-64, 64);
-    let Y = CENTER_Y;
-    let Z = CENTER_Z + RandomRange(-64, 64);
+    var X = CENTER_X + RandomRange(-120, 120)
+    var Y = CENTER_Y
+    var Z = CENTER_Z + RandomRange(-120, 120)
 
-    let Type = RandomRange(0, 3);
+    var Type = RandomRange(0, 4)
 
-    switch(Type){
+    if(Type == 0){
+        GenerateCross(X, Y, Z)
+        Log("Cross generated")
+    }
 
-        case 0:
-            GenerateCross(X, Y, Z);
-            Log("Black cross generated.");
-            break;
+    if(Type == 1){
+        GenerateCube(X, Y, Z)
+        Log("Cube generated")
+    }
 
-        case 1:
-            GenerateCube(X, Y, Z);
-            Log("Hollow cube generated.");
-            break;
+    if(Type == 2){
+        GeneratePillars(X, Y, Z)
+        Log("Pillars generated")
+    }
 
-        case 2:
-            GeneratePillarField(X, Y, Z);
-            Log("Pillar field generated.");
-            break;
+    if(Type == 3){
+        GenerateEye(X, Y, Z)
+        Log("Eye generated")
+    }
 
-        case 3:
-            GenerateEye(X, Y, Z);
-            Log("Eye structure generated.");
-            break;
+    if(Type == 4){
+        GenerateTunnel(X, Y, Z)
+        Log("Tunnel generated")
     }
 }
 
-// ------------------------------------------------------------
-// SCREEN GLITCHES
-// ------------------------------------------------------------
+// ============================================================
+// GLITCHES
+// ============================================================
 
-function ApplyVisualGlitch(){
+function GlitchSmall(){
 
-    // Дёрганные вершины
     _G.ApplyAnomaly(
-        4,
-        RandomFloat(0.0, 0.12),
-        RandomFloat(0.0, 0.12),
-        RandomFloat(0.0, 0.12)
-    );
+        _G.Enum.Anomaly.BufferBuilderVertexRandom,
+        0.05,
+        0.05,
+        0
+    )
 
-    // Смещение мира
     _G.ApplyAnomaly(
-        3,
+        _G.Enum.Anomaly.BufferBuilderVertexOffset,
         RandomFloat(-0.05, 0.05),
         RandomFloat(-0.05, 0.05),
-        RandomFloat(-0.05, 0.05)
-    );
+        0
+    )
+}
 
-    // Иногда красное небо
-    if(Chance(0.35)){
+function GlitchHeavy(){
+
+    _G.ApplyAnomaly(
+        _G.Enum.Anomaly.BufferBuilderVertexRandom,
+        0.2,
+        0.2,
+        0.2
+    )
+
+    _G.ApplyAnomaly(
+        _G.Enum.Anomaly.CloudSpeed,
+        RandomFloat(10, 40)
+    )
+
+    _G.ApplyAnomaly(
+        _G.Enum.Anomaly.CloudHeight,
+        RandomFloat(-40, 200)
+    )
+
+    _G.ApplyAnomaly(
+        _G.Enum.Anomaly.CloudSize,
+        RandomFloat(20, 120),
+        RandomFloat(1, 10),
+        RandomFloat(20, 120)
+    )
+
+    if(Chance(0.5)){
+
         _G.ApplyAnomaly(
-            6,
-            1.0,
-            RandomFloat(0.0, 0.1),
-            RandomFloat(0.0, 0.1)
-        );
+            _G.Enum.Anomaly.SkyColor,
+            1,
+            0,
+            0
+        )
     }
 
-    // Иногда убрать солнце
     if(Chance(0.3)){
-        _G.ApplyAnomaly(8, false);
-    }
-
-    // Иногда скрыть луну
-    if(Chance(0.2)){
-        _G.ApplyAnomaly(11, false);
-    }
-
-    // Ускорить облака
-    _G.ApplyAnomaly(
-        0,
-        RandomFloat(3.0, 20.0)
-    );
-
-    // Огромная луна
-    if(Chance(0.25)){
         _G.ApplyAnomaly(
-            10,
-            RandomFloat(40, 200)
-        );
+            _G.Enum.Anomaly.SunVisible,
+            false
+        )
     }
 
-    // Огромное солнце
-    if(Chance(0.25)){
+    if(Chance(0.3)){
         _G.ApplyAnomaly(
-            7,
-            RandomFloat(40, 200)
-        );
+            _G.Enum.Anomaly.MoonVisible,
+            false
+        )
     }
 
-    Log("Visual glitch applied.");
-}
+    if(Chance(0.5)){
 
-function ResetVisualGlitches(){
-
-    for(let i = 0; i <= 15; i++){
-        _G.ResetAnomaly(i);
+        _G.ApplyAnomaly(
+            _G.Enum.Anomaly.SkyRender,
+            _G.Enum.SkyRender.End
+        )
     }
 
-    Log("Visual glitches reset.");
+    GlitchTick = RandomRange(60, 200)
+
+    Log("Heavy glitch started")
 }
 
-// ------------------------------------------------------------
-// HORROR MESSAGES
-// ------------------------------------------------------------
+function ResetGlitches(){
 
-const Messages = [
-
-    "DO NOT LOOK UP",
-    "SOMETHING IS MOVING",
-    "YOU WERE NOT SUPPOSED TO BE HERE",
-    "THE SKY IS WRONG",
-    "IT KNOWS YOUR LOCATION",
-    "YOU ARE LATE",
-    "TURN AROUND",
-    "THE WORLD IS UNSTABLE",
-    "THEY CAN SEE YOU",
-    "ERROR IN REALITY",
-    "STOP BUILDING",
-    "DO NOT FOLLOW THE LIGHT",
-    "YOU LEFT SOMETHING BEHIND",
-    "THIS WORLD IS NOT EMPTY",
-    "THE CENTER IS OPEN",
-    "WAKE UP"
-];
-
-function RandomMessage(){
-
-    return Messages[
-        RandomRange(0, Messages.length - 1)
-        ];
-}
-
-// ------------------------------------------------------------
-// RANDOM EVENTS
-// ------------------------------------------------------------
-
-function RunRandomEvent(){
-
-    let Type = RandomRange(0, 5);
-
-    switch(Type){
-
-        // Генерация структуры
-        case 0:
-            GenerateRandomStructure();
-            break;
-
-        // Визуальный глюк
-        case 1:
-            ApplyVisualGlitch();
-            break;
-
-        // Сброс глюков
-        case 2:
-            ResetVisualGlitches();
-            break;
-
-        // Сообщение
-        case 3:
-            _G.Logger.Anyway(RandomMessage());
-            break;
-
-        // END SKY
-        case 4:
-
-            _G.ApplyAnomaly(5, 2);
-
-            if(Chance(0.5)){
-                _G.ApplyAnomaly(
-                    14,
-                    _G.ResourceLocation(
-                        "minecraft",
-                        "textures/environment/end_sky.png"
-                    )
-                );
-            }
-
-            Log("End sky event.");
-            break;
-
-        // Огромные облака
-        case 5:
-
-            _G.ApplyAnomaly(
-                1,
-                RandomFloat(20, 80),
-                RandomFloat(2, 10),
-                RandomFloat(20, 80)
-            );
-
-            _G.ApplyAnomaly(
-                2,
-                RandomFloat(-20, 250)
-            );
-
-            Log("Cloud distortion.");
-            break;
+    for(var i = 0; i <= 15; i++){
+        _G.ResetAnomaly(i)
     }
+
+    Log("Glitches reset")
 }
 
-// ------------------------------------------------------------
+// ============================================================
 // EVENTS
-// ------------------------------------------------------------
+// ============================================================
 
-_G.SetEvent(3, function(){
+function SendRandomMessage(){
 
-    Log("Server initialized.");
-    GenerateRandomStructure();
-});
+    var Message =
+        Messages[
+            RandomRange(0, Messages.length - 1)
+            ]
 
-_G.SetEvent(2, function(End){
+    _G.Logger.Anyway(Message)
+}
 
-    if(End){ return; }
+function RandomEvent(){
 
-    Tick++;
+    var Type = RandomRange(0, 8)
+
+    if(Type == 0){
+        GenerateRandomStructure()
+    }
+
+    if(Type == 1){
+        GlitchSmall()
+    }
+
+    if(Type == 2){
+        GlitchHeavy()
+    }
+
+    if(Type == 3){
+        SendRandomMessage()
+    }
+
+    if(Type == 4){
+
+        _G.ApplyAnomaly(
+            _G.Enum.Anomaly.SunSize,
+            RandomFloat(80, 300)
+        )
+
+        Log("Sun distortion")
+    }
+
+    if(Type == 5){
+
+        _G.ApplyAnomaly(
+            _G.Enum.Anomaly.MoonSize,
+            RandomFloat(80, 300)
+        )
+
+        Log("Moon distortion")
+    }
+
+    if(Type == 6){
+
+        _G.ApplyAnomaly(
+            _G.Enum.Anomaly.SkyColor,
+            0,
+            0,
+            0
+        )
+
+        Log("Black sky")
+    }
+
+    if(Type == 7){
+
+        ResetGlitches()
+    }
+
+    if(Type == 8){
+
+        _G.Logger.Error("REALITY ERROR")
+    }
+}
+
+// ============================================================
+// EVENTS REGISTER
+// ============================================================
+
+_G.SetEvent(_G.Enum.Event.ServerInit.ID, function(){
+
+    Log("Server initialized")
+
+    GenerateRandomStructure()
+})
+
+_G.SetEvent(_G.Enum.Event.ClientTick.ID, function(End){
+
+    if(End){
+        return
+    }
+
+    Tick++
+
+    if(GlitchTick > 0){
+
+        GlitchTick--
+
+        if(Chance(0.4)){
+            GlitchSmall()
+        }
+
+        if(GlitchTick <= 0){
+            ResetGlitches()
+        }
+    }
 
     if(Tick >= NextEvent){
 
-        Tick = 0;
+        Tick = 0
+
         NextEvent = RandomRange(
-            EVENTS_MIN_DELAY,
-            EVENTS_MAX_DELAY
-        );
+            500,
+            1600
+        )
 
-        RunRandomEvent();
+        RandomEvent()
     }
-});
+})
 
-// ------------------------------------------------------------
-// KEY EVENTS
-// ------------------------------------------------------------
+_G.SetEvent(_G.Enum.Event.KeyPress.ID, function(Key){
 
-_G.SetEvent(4, function(Key){
+    var Name = _G.KeyName(Key)
 
-    let Name = _G.KeyName(Key);
-
-    // F6 = forced glitch
     if(Name == "F6"){
 
-        ApplyVisualGlitch();
-        _G.Logger.Anyway("MANUAL GLITCH");
+        GlitchHeavy()
+
+        _G.Logger.Anyway("FORCED GLITCH")
     }
 
-    // F7 = forced structure
     if(Name == "F7"){
 
-        GenerateRandomStructure();
-        _G.Logger.Anyway("STRUCTURE GENERATED");
+        GenerateRandomStructure()
+
+        _G.Logger.Anyway("FORCED STRUCTURE")
     }
 
-    // F8 = reset
     if(Name == "F8"){
 
-        ResetVisualGlitches();
-        _G.Logger.Anyway("RESET");
+        ResetGlitches()
+
+        _G.Logger.Anyway("RESET COMPLETE")
     }
-});
+})
 
-// ------------------------------------------------------------
-// ERROR EVENT
-// ------------------------------------------------------------
-
-_G.SetEvent(10, function(Message){
+_G.SetEvent(_G.Enum.Event.Error.ID, function(Message){
 
     _G.Logger.Error(
-        "SCRIPT ERROR DETECTED: " + Message
-    );
-});
+        "SCRIPT FAILURE: " + Message
+    )
+})
 
-// ------------------------------------------------------------
-
-_G.Logger.Anyway("Horror system started.");
+_G.Logger.Anyway("HORROR SYSTEM STARTED")
