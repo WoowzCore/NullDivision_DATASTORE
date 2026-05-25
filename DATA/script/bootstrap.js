@@ -45,6 +45,9 @@ _G.DCos = function(V){ return (Math.cos(V) + 1) / 2 }
 
 // ----------------------------------------------------------------------
 
+// Создаёт ссылку на ресурс
+_G.ResourceLocation = function(Namespace, Path){ return _G.JAVA.ResourceLocation(Namespace, Path) }
+
 _G.World = {
 	SetBlock: function(X, Y, Z, Block, Dimension){ _G.JAVA.SetBlock(Math.floor(X), Math.floor(Y), Math.floor(Z), Block, Dimension || _G.Constant.Dimension_Overworld) }
 }
