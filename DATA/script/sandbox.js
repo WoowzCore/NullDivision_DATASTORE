@@ -1,285 +1,384 @@
-// ========== ЖИВОЙ МИР ==========
-// Высота мира: 0 | Для двух игроков
-// Частые ивенты и постоянная активность
+// ========== ГЛЮКИ РЕАЛЬНОСТИ ==========
+// Для двух игроков | Высота: 0
+// Клиентские визуальные эффекты + ивенты
 
 // ========== НАСТРОЙКИ ==========
 var WORLD_Y = 0
-var EVENT_TIMER = 0
-var ACTIVE_EVENT = null
-var EVENT_DURATION = 0
+var clientTick = 0
+var activeGlitch = null
+var glitchDuration = 0
 var structures = []
 
-// ========== СПИСОК ИВЕНТОВ ==========
-var EVENTS = [
-    {
-        name: "§cКРОВАВЫЙ ДОЖДЬ",
-        chance: 0.15,
-        duration: 300,
-        action: function(){
-            for(var i = 0; i < 50; i++){
-                var x = (Math.random() - 0.5) * 200
-                var z = (Math.random() - 0.5) * 200
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + Math.floor(Math.random() * 10), Math.floor(z), "redstone_block")
-            }
-        },
-        message: "§cНебо плачет кровавыми слезами!"
-    },
-    {
-        name: "§2ЛЕСНОЕ ПРОБУЖДЕНИЕ",
-        chance: 0.12,
-        duration: 400,
-        action: function(){
-            for(var i = 0; i < 80; i++){
-                var x = (Math.random() - 0.5) * 250
-                var z = (Math.random() - 0.5) * 250
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "oak_leaves")
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "oak_log")
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 3, Math.floor(z), "oak_leaves")
-            }
-        },
-        message: "§2Из земли вырастают древние деревья!"
-    },
-    {
-        name: "§5МИСТИЧЕСКИЙ ТУМАН",
-        chance: 0.18,
-        duration: 250,
-        action: function(){
-            for(var i = 0; i < 150; i++){
-                var x = (Math.random() - 0.5) * 300
-                var z = (Math.random() - 0.5) * 300
-                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), "cobweb")
-            }
-        },
-        message: "§5Густой туман окутывает землю!"
-    },
-    {
-        name: "§eЗОЛОТАЯ ЛИХОРАДКА",
-        chance: 0.1,
-        duration: 350,
-        action: function(){
-            for(var i = 0; i < 60; i++){
-                var x = (Math.random() - 0.5) * 200
-                var z = (Math.random() - 0.5) * 200
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "gold_block")
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "gold_ore")
-            }
-        },
-        message: "§eЗемля начинает светиться золотом!"
-    },
-    {
-        name: "§8ПРОБУЖДЕНИЕ СТРАЖЕЙ",
-        chance: 0.08,
-        duration: 500,
-        action: function(){
-            for(var i = 0; i < 20; i++){
-                var x = (Math.random() - 0.5) * 300
-                var z = (Math.random() - 0.5) * 300
-                for(var h = 0; h < 3; h++){
-                    _G.World.SetBlock(Math.floor(x), WORLD_Y + 1 + h, Math.floor(z), "iron_block")
-                }
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 4, Math.floor(z), "carved_pumpkin")
-            }
-        },
-        message: "§8Каменные стражи оживают!"
-    },
-    {
-        name: "§bЛЕДЯНОЕ ДЫХАНИЕ",
-        chance: 0.14,
-        duration: 280,
-        action: function(){
-            for(var i = 0; i < 100; i++){
-                var x = (Math.random() - 0.5) * 250
-                var z = (Math.random() - 0.5) * 250
-                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), "ice")
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "snow_block")
-            }
-        },
-        message: "§bМир покрывается льдом и снегом!"
-    },
-    {
-        name: "§4ПЛОТЯНОЙ КОВЁР",
-        chance: 0.11,
-        duration: 320,
-        action: function(){
-            for(var i = 0; i < 120; i++){
-                var x = (Math.random() - 0.5) * 280
-                var z = (Math.random() - 0.5) * 280
-                var block = Math.random() < 0.5 ? "nether_wart_block" : "crimson_hyphae"
-                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), block)
-            }
-        },
-        message: "§4Земля покрывается пульсирующей плотью!"
-    },
-    {
-        name: "§dСВЕТЯЩИЙСЯ ДОЖДЬ",
-        chance: 0.13,
-        duration: 300,
-        action: function(){
-            for(var i = 0; i < 80; i++){
-                var x = (Math.random() - 0.5) * 200
-                var z = (Math.random() - 0.5) * 200
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + Math.floor(Math.random() * 5), Math.floor(z), "glowstone")
-            }
-        },
-        message: "§dС неба падают светящиеся кристаллы!"
-    },
-    {
-        name: "§3ВОДНЫЙ ПОТОП",
-        chance: 0.09,
-        duration: 400,
-        action: function(){
-            for(var i = 0; i < 200; i++){
-                var x = (Math.random() - 0.5) * 350
-                var z = (Math.random() - 0.5) * 350
-                _G.World.SetBlock(Math.floor(x), WORLD_Y, Math.floor(z), "water")
-            }
-        },
-        message: "§3Вода поднимается из глубин!"
-    },
-    {
-        name: "§6ДРЕВНИЙ ГНЕВ",
-        chance: 0.07,
-        duration: 450,
-        action: function(){
-            for(var i = 0; i < 40; i++){
-                var x = (Math.random() - 0.5) * 250
-                var z = (Math.random() - 0.5) * 250
-                for(var r = -2; r <= 2; r++){
-                    for(var c = -2; c <= 2; c++){
-                        _G.World.SetBlock(Math.floor(x) + r, WORLD_Y + 1, Math.floor(z) + c, "obsidian")
-                    }
-                }
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "nether_star")
-            }
-        },
-        message: "§6Древние силы извергаются из земли!"
-    }
-]
+// ========== КЛИЕНТСКИЕ ВИЗУАЛЬНЫЕ ЭФФЕКТЫ ==========
 
-// ========== БЫСТРЫЕ МАЛЫЕ ИВЕНТЫ ==========
-var MINI_EVENTS = [
+var VISUAL_EFFECTS = [
     {
-        name: "§7Камень падает с неба!",
-        action: function(){
-            var x = (Math.random() - 0.5) * 100
-            var z = (Math.random() - 0.5) * 100
-            _G.World.SetBlock(Math.floor(x), WORLD_Y + 5, Math.floor(z), "anvil")
+        name: "§cКРАСНЫЙ ФИЛЬТР",
+        duration: 60,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.9, 0.2, 0.2)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     },
     {
-        name: "§aТрава разрастается!",
-        action: function(){
-            for(var i = 0; i < 20; i++){
-                var x = (Math.random() - 0.5) * 80
-                var z = (Math.random() - 0.5) * 80
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "grass_block")
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "tall_grass")
-            }
+        name: "§bСИНИЙ ФИЛЬТР",
+        duration: 60,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.2, 0.3, 0.9)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     },
     {
-        name: "§3Маленький водопад!",
-        action: function(){
-            var x = (Math.random() - 0.5) * 90
-            var z = (Math.random() - 0.5) * 90
-            for(var h = 0; h < 5; h++){
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + h, Math.floor(z), "water")
-            }
+        name: "§aЗЕЛЁНЫЙ ФИЛЬТР",
+        duration: 60,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.2, 0.8, 0.2)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     },
     {
-        name: "§eСпавн моба!",
-        action: function(){
-            for(var i = 0; i < 5; i++){
-                var x = (Math.random() - 0.5) * 70
-                var z = (Math.random() - 0.5) * 70
-                _G.World.SetBlock(Math.floor(x), WORLD_Y + 1, Math.floor(z), "spawner")
-            }
+        name: "§5ФИОЛЕТОВЫЙ ФИЛЬТР",
+        duration: 60,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.8, 0.2, 0.9)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     },
     {
-        name: "§cВулканический выброс!",
-        action: function(){
-            var x = (Math.random() - 0.5) * 100
-            var z = (Math.random() - 0.5) * 100
-            for(var r = -2; r <= 2; r++){
-                for(var c = -2; c <= 2; c++){
-                    if(Math.abs(r) === 2 || Math.abs(c) === 2){
-                        _G.World.SetBlock(Math.floor(x) + r, WORLD_Y + 1, Math.floor(z) + c, "magma_block")
-                    }
-                }
-            }
-            _G.World.SetBlock(Math.floor(x), WORLD_Y + 2, Math.floor(z), "lava")
+        name: "§7СЕПИЯ",
+        duration: 80,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.7, 0.5, 0.3)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     },
     {
-        name: "§8Тёмный всплеск!",
-        action: function(){
-            var x = (Math.random() - 0.5) * 80
-            var z = (Math.random() - 0.5) * 80
-            for(var r = -3; r <= 3; r++){
-                for(var c = -3; c <= 3; c++){
-                    if(Math.random() < 0.3){
-                        _G.World.SetBlock(Math.floor(x) + r, WORLD_Y, Math.floor(z) + c, "blackstone")
-                    }
-                }
-            }
+        name: "§8ТЁМНЫЙ ФИЛЬТР",
+        duration: 50,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.1, 0.1, 0.1)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     },
     {
-        name: "§5Мистический цветок!",
-        action: function(){
-            var x = (Math.random() - 0.5) * 60
-            var z = (Math.random() - 0.5) * 60
-            for(var i = 0; i < 10; i++){
-                _G.World.SetBlock(Math.floor(x) + Math.floor((Math.random() - 0.5) * 10), WORLD_Y + 1, Math.floor(z) + Math.floor((Math.random() - 0.5) * 10), "allium")
-            }
+        name: "§eЖЁЛТЫЙ ФИЛЬТР",
+        duration: 60,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.9, 0.8, 0.2)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     },
     {
-        name: "§2Корни прорываются!",
-        action: function(){
-            var x = (Math.random() - 0.5) * 70
-            var z = (Math.random() - 0.5) * 70
-            for(var i = 0; i < 15; i++){
-                var dx = Math.floor((Math.random() - 0.5) * 15)
-                var dz = Math.floor((Math.random() - 0.5) * 15)
-                _G.World.SetBlock(Math.floor(x) + dx, WORLD_Y + 1, Math.floor(z) + dz, "oak_log")
-            }
+        name: "§dРОЗОВЫЙ ФИЛЬТР",
+        duration: 55,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.9, 0.5, 0.8)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
         }
     }
 ]
 
-// ========== СТРУКТУРЫ ДЛЯ ВЫЖИВАНИЯ ==========
+var SCREEN_SHAKE_EFFECTS = [
+    {
+        name: "§cЗЕМЛЕТРЯСЕНИЕ",
+        duration: 40,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset, 0.03, 0.03, 0.03)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
+        }
+    },
+    {
+        name: "§5СИЛЬНАЯ ТРЯСКА",
+        duration: 30,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset, 0.08, 0.05, 0.08)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
+        }
+    },
+    {
+        name: "§8РАЗРЫВ РЕАЛЬНОСТИ",
+        duration: 50,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexRandom, 0.05, 0.05, 0.05)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset, 0.02, 0.02, 0.02)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexRandom)
+            _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
+        }
+    },
+    {
+        name: "§3ВЕРТИКАЛЬНАЯ ВИБРАЦИЯ",
+        duration: 45,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset, 0, 0.06, 0)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
+        }
+    },
+    {
+        name: "§6ГОРИЗОНТАЛЬНАЯ ВИБРАЦИЯ",
+        duration: 45,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset, 0.06, 0, 0.06)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
+        }
+    }
+]
+
+var CELESTIAL_EFFECTS = [
+    {
+        name: "§6ГИГАНТСКОЕ СОЛНЦЕ",
+        duration: 100,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SunSize, 80)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SunVisible, true)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SunSize)
+            _G.ResetAnomaly(_G.Enum.Anomaly.SunVisible)
+        }
+    },
+    {
+        name: "§bГИГАНТСКАЯ ЛУНА",
+        duration: 100,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.MoonSize, 90)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.MoonVisible, true)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.MoonSize)
+            _G.ResetAnomaly(_G.Enum.Anomaly.MoonVisible)
+        }
+    },
+    {
+        name: "§eСОЛНЦЕ И ЛУНА ВМЕСТЕ",
+        duration: 120,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SunVisible, true)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.MoonVisible, true)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SunSize, 40)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.MoonSize, 40)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SunVisible)
+            _G.ResetAnomaly(_G.Enum.Anomaly.MoonVisible)
+            _G.ResetAnomaly(_G.Enum.Anomaly.SunSize)
+            _G.ResetAnomaly(_G.Enum.Anomaly.MoonSize)
+        }
+    },
+    {
+        name: "§8СОЛНЕЧНОЕ ЗАТМЕНИЕ",
+        duration: 90,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SunVisible, false)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.1, 0.1, 0.15)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SunVisible)
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
+        }
+    },
+    {
+        name: "§dДВОЙНОЕ СОЛНЦЕ",
+        duration: 80,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SunSize, 60)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.9, 0.7, 0.3)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.SunSize)
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
+        }
+    }
+]
+
+var CLOUD_EFFECTS = [
+    {
+        name: "§7БЫСТРЫЕ ОБЛАКА",
+        duration: 120,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSpeed, 5)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudSpeed)
+        }
+    },
+    {
+        name: "§7МЕДЛЕННЫЕ ОБЛАКА",
+        duration: 120,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSpeed, 0.1)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudSpeed)
+        }
+    },
+    {
+        name: "§8НИЗКИЕ ОБЛАКА",
+        duration: 100,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudHeight, -15)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSize, 20, 2, 20)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudHeight)
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudSize)
+        }
+    },
+    {
+        name: "§fВЫСОКИЕ ОБЛАКА",
+        duration: 100,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudHeight, 20)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSize, 8, 1, 8)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudHeight)
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudSize)
+        }
+    },
+    {
+        name: "§7РАЗОРВАННЫЕ ОБЛАКА",
+        duration: 90,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSize, 5, 0.5, 15)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.CloudSpeed, 2)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudSize)
+            _G.ResetAnomaly(_G.Enum.Anomaly.CloudSpeed)
+        }
+    }
+]
+
+var STAR_EFFECTS = [
+    {
+        name: "§eЗВЁЗДОПАД",
+        duration: 70,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.StarsVisible, true)
+            _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.1, 0.1, 0.3)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.StarsVisible)
+            _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
+        }
+    },
+    {
+        name: "§8БЕЗ ЗВЁЗД",
+        duration: 100,
+        apply: function(){
+            _G.ApplyAnomaly(_G.Enum.Anomaly.StarsVisible, false)
+        },
+        reset: function(){
+            _G.ResetAnomaly(_G.Enum.Anomaly.StarsVisible)
+        }
+    },
+    {
+        name: "§5МЕРЦАНИЕ",
+        duration: 60,
+        apply: function(){
+            var self = this
+            var interval = setInterval(function(){
+                if(activeGlitch !== self.name){
+                    clearInterval(interval)
+                    return
+                }
+                _G.ApplyAnomaly(_G.Enum.Anomaly.StarsVisible, Math.random() < 0.5)
+            }, 1000)
+            this.interval = interval
+        },
+        reset: function(){
+            if(this.interval) clearInterval(this.interval)
+            _G.ResetAnomaly(_G.Enum.Anomaly.StarsVisible)
+        }
+    }
+]
+
+var ALL_EFFECTS = []
+    .concat(VISUAL_EFFECTS)
+    .concat(SCREEN_SHAKE_EFFECTS)
+    .concat(CELESTIAL_EFFECTS)
+    .concat(CLOUD_EFFECTS)
+    .concat(STAR_EFFECTS)
+
+// ========== ЗАПУСК СЛУЧАЙНОГО ЭФФЕКТА ==========
+
+function TriggerRandomVisualEffect(){
+    if(activeGlitch !== null) return
+
+    var effect = ALL_EFFECTS[Math.floor(Math.random() * ALL_EFFECTS.length)]
+    activeGlitch = effect.name
+    glitchDuration = effect.duration
+
+    _G.Logger.Info("§d[Эффект] " + effect.name)
+    effect.apply()
+
+    setTimeout(function(){
+        if(activeGlitch === effect.name){
+            effect.reset()
+            activeGlitch = null
+            _G.Logger.Info("§7[Эффект] " + effect.name + " §7закончился")
+        }
+    }, effect.duration * 50)
+}
+
+// ========== СТРУКТУРЫ ==========
 
 function GenerateSurvivalHut(x, z){
-    for(var ix = -2; ix <= 2; ix++){
-        for(var iz = -2; iz <= 2; iz++){
+    for(var ix = -3; ix <= 3; ix++){
+        for(var iz = -3; iz <= 3; iz++){
             _G.World.SetBlock(x + ix, WORLD_Y, z + iz, "oak_planks")
         }
     }
-    for(var h = 1; h <= 3; h++){
-        _G.World.SetBlock(x - 2, WORLD_Y + h, z - 2, "oak_log")
-        _G.World.SetBlock(x - 2, WORLD_Y + h, z + 2, "oak_log")
-        _G.World.SetBlock(x + 2, WORLD_Y + h, z - 2, "oak_log")
-        _G.World.SetBlock(x + 2, WORLD_Y + h, z + 2, "oak_log")
+    for(var h = 1; h <= 4; h++){
+        _G.World.SetBlock(x - 3, WORLD_Y + h, z - 3, "oak_log")
+        _G.World.SetBlock(x - 3, WORLD_Y + h, z + 3, "oak_log")
+        _G.World.SetBlock(x + 3, WORLD_Y + h, z - 3, "oak_log")
+        _G.World.SetBlock(x + 3, WORLD_Y + h, z + 3, "oak_log")
     }
-    for(var iy = 1; iy <= 2; iy++){
+    for(var iy = 1; iy <= 3; iy++){
         _G.World.SetBlock(x, WORLD_Y + iy, z, "crafting_table")
     }
     _G.World.SetBlock(x + 1, WORLD_Y + 1, z, "furnace")
     _G.World.SetBlock(x - 1, WORLD_Y + 1, z, "chest")
-    _G.World.SetBlock(x, WORLD_Y + 3, z, "torch")
+    _G.World.SetBlock(x, WORLD_Y + 4, z, "torch")
+    _G.World.SetBlock(x + 1, WORLD_Y + 2, z, "bed")
+    _G.World.SetBlock(x + 1, WORLD_Y + 2, z + 1, "bed")
 }
 
 function GenerateOreVein(x, z){
-    var ores = ["coal_ore", "iron_ore", "gold_ore", "diamond_ore", "emerald_ore"]
+    var ores = ["coal_ore", "iron_ore", "gold_ore", "diamond_ore", "emerald_ore", "copper_ore", "lapis_ore"]
     var ore = ores[Math.floor(Math.random() * ores.length)]
-    for(var ix = -3; ix <= 3; ix++){
-        for(var iz = -3; iz <= 3; iz++){
-            if(Math.random() < 0.4){
+    for(var ix = -4; ix <= 4; ix++){
+        for(var iz = -4; iz <= 4; iz++){
+            if(Math.random() < 0.3){
                 _G.World.SetBlock(x + ix, WORLD_Y, z + iz, ore)
-                if(Math.random() < 0.3){
+                if(Math.random() < 0.2){
                     _G.World.SetBlock(x + ix, WORLD_Y + 1, z + iz, ore)
                 }
             }
@@ -287,35 +386,32 @@ function GenerateOreVein(x, z){
     }
 }
 
-function GeneratePond(x, z){
-    var radius = 3 + Math.floor(Math.random() * 3)
-    for(var ix = -radius; ix <= radius; ix++){
-        for(var iz = -radius; iz <= radius; iz++){
-            if(ix*ix + iz*iz <= radius*radius){
-                _G.World.SetBlock(x + ix, WORLD_Y, z + iz, "water")
-                _G.World.SetBlock(x + ix, WORLD_Y - 1, z + iz, "clay")
+function GenerateTreeCluster(x, z){
+    for(var t = 0; t < 8; t++){
+        var tx = x + Math.floor((Math.random() - 0.5) * 15)
+        var tz = z + Math.floor((Math.random() - 0.5) * 15)
+        for(var h = 1; h <= 5; h++){
+            _G.World.SetBlock(tx, WORLD_Y + h, tz, "oak_log")
+        }
+        for(var lx = -1; lx <= 1; lx++){
+            for(var lz = -1; lz <= 1; lz++){
+                _G.World.SetBlock(tx + lx, WORLD_Y + 5, tz + lz, "oak_leaves")
             }
         }
-    }
-    for(var f = 0; f < 5; f++){
-        var fx = x + Math.floor((Math.random() - 0.5) * radius)
-        var fz = z + Math.floor((Math.random() - 0.5) * radius)
-        _G.World.SetBlock(fx, WORLD_Y + 1, fz, "lily_pad")
+        _G.World.SetBlock(tx, WORLD_Y + 6, tz, "oak_leaves")
     }
 }
 
-function GenerateTreeCluster(x, z){
-    for(var t = 0; t < 5; t++){
-        var tx = x + Math.floor((Math.random() - 0.5) * 10)
-        var tz = z + Math.floor((Math.random() - 0.5) * 10)
-        for(var h = 1; h <= 4; h++){
-            _G.World.SetBlock(tx, WORLD_Y + h, tz, "oak_log")
+function GeneratePond(x, z){
+    for(var ix = -5; ix <= 5; ix++){
+        for(var iz = -5; iz <= 5; iz++){
+            if(ix*ix + iz*iz <= 25){
+                _G.World.SetBlock(x + ix, WORLD_Y, z + iz, "water")
+                if(Math.random() < 0.3){
+                    _G.World.SetBlock(x + ix, WORLD_Y + 1, z + iz, "lily_pad")
+                }
+            }
         }
-        _G.World.SetBlock(tx, WORLD_Y + 5, tz, "oak_leaves")
-        _G.World.SetBlock(tx + 1, WORLD_Y + 4, tz, "oak_leaves")
-        _G.World.SetBlock(tx - 1, WORLD_Y + 4, tz, "oak_leaves")
-        _G.World.SetBlock(tx, WORLD_Y + 4, tz + 1, "oak_leaves")
-        _G.World.SetBlock(tx, WORLD_Y + 4, tz - 1, "oak_leaves")
     }
 }
 
@@ -325,143 +421,120 @@ function GenerateWorld(){
     structures = []
     _G.Logger.Info("§2========== ГЕНЕРАЦИЯ МИРА ==========")
 
-    var totalStructures = 0
-    var radius = 500
+    var total = 0
+    var radius = 600
 
-    // Храмы и крупные структуры
-    var templeTypes = [
-        {name: "Каменный Храм", func: function(x,z){ GenerateSurvivalHut(x,z); for(var i=0;i<3;i++) GenerateOreVein(x+5,z+5); }},
-        {name: "Рудная Жила", func: function(x,z){ for(var i=0;i<5;i++) GenerateOreVein(x+Math.random()*10-5, z+Math.random()*10-5); }},
-        {name: "Лесной Оазис", func: function(x,z){ GeneratePond(x,z); GenerateTreeCluster(x,z); }},
-        {name: "Заброшенная Шахта", func: function(x,z){ for(var i=0;i<8;i++){ var sx=x+Math.random()*20-10; var sz=z+Math.random()*20-10; _G.World.SetBlock(Math.floor(sx), WORLD_Y+1, Math.floor(sz), "rail"); } }}
-    ]
-
-    for(var angle = 0; angle < 360; angle += 45){
-        var rad = angle * Math.PI / 180
-        var dist = 150
-        var x = Math.cos(rad) * dist
-        var z = Math.sin(rad) * dist
-
-        var type = templeTypes[Math.floor(Math.random() * templeTypes.length)]
-        type.func(Math.floor(x), Math.floor(z))
-        structures.push({x: Math.floor(x), z: Math.floor(z), name: type.name})
-        totalStructures++
-    }
-
-    for(var dist = 200; dist <= radius; dist += 100){
-        var count = Math.floor(dist / 50)
+    for(var dist = 100; dist <= radius; dist += 80){
+        var count = Math.floor(dist / 40) + 1
         for(var i = 0; i < count; i++){
             var angle = Math.random() * Math.PI * 2
-            var x = Math.cos(angle) * (dist + Math.random() * 50)
-            var z = Math.sin(angle) * (dist + Math.random() * 50)
+            var x = Math.cos(angle) * (dist + Math.random() * 40)
+            var z = Math.sin(angle) * (dist + Math.random() * 40)
 
-            var type = templeTypes[Math.floor(Math.random() * templeTypes.length)]
-            type.func(Math.floor(x), Math.floor(z))
-            structures.push({x: Math.floor(x), z: Math.floor(z), name: type.name})
-            totalStructures++
+            var type = Math.floor(Math.random() * 4)
+            var name = ""
+
+            if(type === 0){
+                GenerateSurvivalHut(Math.floor(x), Math.floor(z))
+                name = "Хижина"
+            } else if(type === 1){
+                GenerateOreVein(Math.floor(x), Math.floor(z))
+                name = "Рудная жила"
+            } else if(type === 2){
+                GenerateTreeCluster(Math.floor(x), Math.floor(z))
+                name = "Лес"
+            } else {
+                GeneratePond(Math.floor(x), Math.floor(z))
+                name = "Пруд"
+            }
+
+            structures.push({x: Math.floor(x), z: Math.floor(z), name: name, notified: false})
+            total++
         }
     }
 
-    _G.Logger.Info("§aСгенерировано структур: " + totalStructures)
-    _G.Logger.Info("§7Радиус мира: " + radius + " блоков")
-    _G.Logger.Info("§7Высота: " + WORLD_Y)
-
-    return totalStructures
-}
-
-// ========== ЗАПУСК ИВЕНТОВ ==========
-
-function TriggerRandomEvent(){
-    if(ACTIVE_EVENT !== null) return
-
-    var roll = Math.random()
-    var cumulative = 0
-
-    for(var i = 0; i < EVENTS.length; i++){
-        cumulative += EVENTS[i].chance
-        if(roll < cumulative){
-            ACTIVE_EVENT = EVENTS[i]
-            EVENT_DURATION = ACTIVE_EVENT.duration
-            _G.Logger.Info("§l§m====================§r")
-            _G.Logger.Info(ACTIVE_EVENT.name)
-            _G.Logger.Info(ACTIVE_EVENT.message)
-            _G.Logger.Info("§l§m====================§r")
-            ACTIVE_EVENT.action()
-            break
-        }
-    }
-}
-
-function TriggerMiniEvent(){
-    var event = MINI_EVENTS[Math.floor(Math.random() * MINI_EVENTS.length)]
-    _G.Logger.Info("§7[Событие] " + event.name)
-    event.action()
+    _G.Logger.Info("§aСгенерировано структур: " + total)
+    _G.Logger.Info("§7Радиус: " + radius + " | Высота: " + WORLD_Y)
+    return total
 }
 
 // ========== ОСНОВНОЙ ЦИКЛ ==========
-var tick = 0
-var miniEventCooldown = 0
+var tickCounter = 0
+var effectCooldown = 0
 
-_G.SetEvent(_G.Enum.Event.ServerTick, function(End){
+_G.SetEvent(_G.Enum.Event.ClientTick, function(End){
     if(!End) return
 
-    tick++
-    EVENT_TIMER++
-    miniEventCooldown++
+    tickCounter++
 
-    // Крупные ивенты (каждые 15-30 секунд)
-    if(EVENT_TIMER >= 300 && ACTIVE_EVENT === null){
-        EVENT_TIMER = 0
-        if(Math.random() < 0.4){
-            TriggerRandomEvent()
+    // Эффекты каждые 10-20 секунд
+    if(tickCounter % 100 === 0 && activeGlitch === null){
+        if(Math.random() < 0.35){
+            TriggerRandomVisualEffect()
         }
     }
 
-    // Завершение активного ивента
-    if(ACTIVE_EVENT !== null){
-        if(EVENT_TIMER >= EVENT_DURATION){
-            _G.Logger.Info("§8Ивент '" + ACTIVE_EVENT.name.replace(/§[0-9a-z]/gi, '') + "' завершился...")
-            ACTIVE_EVENT = null
-            EVENT_TIMER = 0
-        }
-    }
-
-    // Малые ивенты (каждые 5-10 секунд)
-    if(miniEventCooldown >= 80 && ACTIVE_EVENT === null){
-        miniEventCooldown = 0
-        if(Math.random() < 0.5){
-            TriggerMiniEvent()
-        }
-    }
-
-    // Случайные генерации (каждые 3-5 секунд)
-    if(tick % 60 === 0 && Math.random() < 0.3){
-        var x = (Math.random() - 0.5) * 400
-        var z = (Math.random() - 0.5) * 400
-        var genType = Math.floor(Math.random() * 4)
-        if(genType === 0) GenerateOreVein(Math.floor(x), Math.floor(z))
-        if(genType === 1) GenerateTreeCluster(Math.floor(x), Math.floor(z))
-        if(genType === 2) GeneratePond(Math.floor(x), Math.floor(z))
-        if(genType === 3) GenerateSurvivalHut(Math.floor(x), Math.floor(z))
+    // Пульсация неба (лёгкий эффект всегда)
+    if(tickCounter % 20 === 0 && activeGlitch === null){
+        var pulse = (Math.sin(tickCounter / 40) + 1) / 2 * 0.1
+        _G.ApplyAnomaly(_G.Enum.Anomaly.SkyColor, 0.5 + pulse, 0.4 + pulse * 0.5, 0.6 + pulse)
+        setTimeout(function(){
+            if(activeGlitch === null){
+                _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
+            }
+        }, 100)
     }
 })
 
-// ========== ОПОВЕЩЕНИЯ ДЛЯ ИГРОКОВ ==========
-var lastCheck = 0
+// Серверные ивенты
+var eventCounter = 0
 
 _G.SetEvent(_G.Enum.Event.ServerTick, function(End){
     if(!End) return
 
-    lastCheck++
-    if(lastCheck < 100) return
-    lastCheck = 0
+    eventCounter++
 
-    // Игрок 1 (центр)
+    // Серверные ивенты каждые 30-60 секунд
+    if(eventCounter % 400 === 0){
+        var serverEvent = Math.floor(Math.random() * 4)
+        if(serverEvent === 0){
+            var x = (Math.random() - 0.5) * 400
+            var z = (Math.random() - 0.5) * 400
+            GenerateOreVein(Math.floor(x), Math.floor(z))
+            _G.Logger.Info("§7[Мир] Новая рудная жила появилась!")
+        } else if(serverEvent === 1){
+            var x = (Math.random() - 0.5) * 400
+            var z = (Math.random() - 0.5) * 400
+            GenerateTreeCluster(Math.floor(x), Math.floor(z))
+            _G.Logger.Info("§7[Мир] Выросла новая роща!")
+        } else if(serverEvent === 2){
+            var x = (Math.random() - 0.5) * 400
+            var z = (Math.random() - 0.5) * 400
+            GeneratePond(Math.floor(x), Math.floor(z))
+            _G.Logger.Info("§7[Мир] Образовался новый пруд!")
+        } else if(serverEvent === 3){
+            _G.Logger.Info("§7[Мир] Тишина... ничего не произошло")
+        }
+    }
+})
+
+// Оповещения для игроков
+var checkTimer = 0
+
+_G.SetEvent(_G.Enum.Event.ServerTick, function(End){
+    if(!End) return
+
+    checkTimer++
+    if(checkTimer < 100) return
+    checkTimer = 0
+
     for(var s = 0; s < structures.length; s++){
-        var dist = Math.sqrt(structures[s].x * structures[s].x + structures[s].z * structures[s].z)
-        if(dist < 80 && !structures[s].notified){
-            _G.Logger.Info("§eТы нашёл: §6" + structures[s].name + "§e на расстоянии " + Math.floor(dist))
-            structures[s].notified = true
+        var struct = structures[s]
+        var dist = Math.sqrt(struct.x * struct.x + struct.z * struct.z)
+
+        if(dist < 60 && !struct.notified){
+            _G.Logger.Info("§eТы обнаружил: §6" + struct.name + "§e на расстоянии " + Math.floor(dist))
+            struct.notified = true
         }
     }
 })
@@ -470,50 +543,67 @@ _G.SetEvent(_G.Enum.Event.ServerTick, function(End){
 
 _G.GenerateWorld = function(){
     var count = GenerateWorld()
-    _G.Logger.Info("§aГотово! Сгенерировано " + count + " структур")
-    _G.Logger.Info("§7Для двух игроков | Центр: 0, " + WORLD_Y + ", 0")
+    _G.Logger.Info("§aГотово! " + count + " структур для исследования")
+    _G.Logger.Info("§7Используй _G.Effect() для случайного визуального эффекта")
 }
 
-_G.ListEvents = function(){
-    _G.Logger.Info("§6Доступные ивенты:")
-    for(var i = 0; i < EVENTS.length; i++){
-        _G.Logger.Info("  §7- " + EVENTS[i].name.replace(/§[0-9a-z]/gi, '') + " (шанс: " + (EVENTS[i].chance * 100) + "%)")
+_G.Effect = function(){
+    TriggerRandomVisualEffect()
+}
+
+_G.ListEffects = function(){
+    _G.Logger.Info("§6Доступные визуальные эффекты (" + ALL_EFFECTS.length + "):")
+    for(var i = 0; i < Math.min(20, ALL_EFFECTS.length); i++){
+        _G.Logger.Info("  §7- " + ALL_EFFECTS[i].name)
     }
 }
 
-_G.ForceEvent = function(index){
-    if(index >= 0 && index < EVENTS.length){
-        if(ACTIVE_EVENT !== null){
-            _G.Logger.Info("§cСейчас активен другой ивент!")
-            return
+_G.StopEffect = function(){
+    if(activeGlitch !== null){
+        for(var i = 0; i < ALL_EFFECTS.length; i++){
+            if(ALL_EFFECTS[i].name === activeGlitch){
+                ALL_EFFECTS[i].reset()
+                break
+            }
         }
-        ACTIVE_EVENT = EVENTS[index]
-        EVENT_DURATION = ACTIVE_EVENT.duration
-        EVENT_TIMER = 0
-        _G.Logger.Info("§l§m====================§r")
-        _G.Logger.Info(ACTIVE_EVENT.name)
-        _G.Logger.Info(ACTIVE_EVENT.message)
-        _G.Logger.Info("§l§m====================§r")
-        ACTIVE_EVENT.action()
+        _G.Logger.Info("§7Эффект '" + activeGlitch + "' принудительно остановлен")
+        activeGlitch = null
     } else {
-        _G.Logger.Info("§cНеверный индекс! Используйте 0-" + (EVENTS.length-1))
+        _G.Logger.Info("§7Нет активных эффектов")
     }
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 _G.SetEvent(_G.Enum.Event.JSReload, function(End){
     if(End){
-        _G.Logger.Info("§8=== ЖИВОЙ МИР ВЫГРУЖЕН ===")
+        if(activeGlitch !== null){
+            for(var i = 0; i < ALL_EFFECTS.length; i++){
+                if(ALL_EFFECTS[i].name === activeGlitch){
+                    ALL_EFFECTS[i].reset()
+                    break
+                }
+            }
+        }
+        _G.ResetAnomaly(_G.Enum.Anomaly.SkyColor)
+        _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexOffset)
+        _G.ResetAnomaly(_G.Enum.Anomaly.BufferBuilderVertexRandom)
+        _G.ResetAnomaly(_G.Enum.Anomaly.SunSize)
+        _G.ResetAnomaly(_G.Enum.Anomaly.MoonSize)
+        _G.ResetAnomaly(_G.Enum.Anomaly.CloudSpeed)
+        _G.ResetAnomaly(_G.Enum.Anomaly.CloudHeight)
+        _G.ResetAnomaly(_G.Enum.Anomaly.CloudSize)
+        _G.ResetAnomaly(_G.Enum.Anomaly.StarsVisible)
+        _G.Logger.Info("§8=== ГЛЮКИ РЕАЛЬНОСТИ ВЫГРУЖЕНЫ ===")
     } else {
-        _G.Logger.Info("§2§l=== ЖИВОЙ МИР ===")
-        _G.Logger.Info("§7Высота: " + WORLD_Y)
-        _G.Logger.Info("§7События происходят постоянно!")
+        _G.Logger.Info("§5§l=== ГЛЮКИ РЕАЛЬНОСТИ ===")
+        _G.Logger.Info("§7Визуальные эффекты каждые 10-20 секунд")
         _G.Logger.Info("§aКоманды:")
         _G.Logger.Info("  §e_G.GenerateWorld() §7- генерация мира")
-        _G.Logger.Info("  §e_G.ListEvents() §7- список ивентов")
-        _G.Logger.Info("  §e_G.ForceEvent(индекс) §7- принудительный ивент")
+        _G.Logger.Info("  §e_G.Effect() §7- случайный эффект")
+        _G.Logger.Info("  §e_G.ListEffects() §7- список эффектов")
+        _G.Logger.Info("  §e_G.StopEffect() §7- остановить эффект")
     }
 })
 
-_G.Logger.Info("§2=== ЖИВОЙ МИР ЗАГРУЖЕН ===")
+_G.Logger.Info("§5=== ГЛЮКИ РЕАЛЬНОСТИ ЗАГРУЖЕНЫ ===")
 _G.Logger.Info("§7Введите §e_G.GenerateWorld() §7для начала")
