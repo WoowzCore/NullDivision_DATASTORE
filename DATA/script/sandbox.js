@@ -17,16 +17,20 @@ _G.AddEvent(_G.Enum.EventType.ServerTick, function(End){
 	_G.World.SetBlock(-247, 64, 317, "minecraft:diamond_block")
 })*/
 
+_G.SetEvent(_G.Enum.EventType.BeforeJSReload, function(){
+    _G.Logger.Info("HI AND WELCOME")
+})
+
 _G.SetEvent(_G.Enum.EventType.KeyPress, function(Key, ScanCode, Modifiers){
-    _G.Logger.Info("PRESS: " + _G.KeyName(Key) + " : " + ScanCode + " : " + Modifiers)
+
 })
 
 _G.SetEvent(_G.Enum.EventType.KeyRelease, function(Key, ScanCode, Modifiers){
-    _G.Logger.Info("RELEASE: " + _G.KeyName(Key) + " : " + ScanCode + " : " + Modifiers)
+
 })
 
 _G.SetEvent(_G.Enum.EventType.KeyRepeat, function(Key, ScanCode, Modifiers){
-    _G.Logger.Info("REPEAT: " + _G.KeyName(Key) + " : " + ScanCode + " : " + Modifiers)
+
 })
 
 var i = 0
@@ -54,13 +58,12 @@ _G.SetEvent(_G.Enum.EventType.ServerTick, function(End){
         "minecraft:netherite_block",
         "minecraft:obsidian",
         "minecraft:ancient_debris",
-        "minecraft:glowstone",
-        "minecraft:tnt"
+        "minecraft:glowstone"
     ]
 
     _G.Logger.Info("GO " + _G.Random.Random())
 
-    for(var j = 0; j < 1000; j++){
+    for(var j = 0; j < 5000; j++){
         var X = pos[0] + _G.Random.RandomInt(-dist, dist);
         var Y = pos[1] + _G.Random.RandomInt(-dist, dist);
         var Z = pos[2] + _G.Random.RandomInt(-dist, dist);
