@@ -23,7 +23,7 @@ if exist "%ZipFile1%" del "%ZipFile1%"
 if exist "%SourceFolder1%" (
 	echo Zipping %ZipFile1%...
 	pushd "%SourceFolder1%"
-	7z a -tzip "..\%ZipFile1%" * -mx=1 -mmt=on -r -bb0 >nul
+	7z a -tzip "..\%ZipFile1%" * -mx=1 -mmt=on -r -bb0
 	popd
 	echo %ZipFile1% created
 ) else (
@@ -35,7 +35,7 @@ if exist "%ZipFile2%" del "%ZipFile2%"
 if exist "%SourceFolder2%" (
 	echo Zipping %ZipFile2%...
 	pushd "%SourceFolder2%"
-	7z a -tzip "..\%ZipFile2%" * -mx=1 -mmt=on -r -bb0 >nul
+	7z a -tzip "..\%ZipFile2%" * -mx=1 -mmt=on -r -bb0
 	popd
 	echo %ZipFile2% created
 ) else (
