@@ -1,4 +1,4 @@
-_G.Arts = {
+WL.Arts = {
     SKULL: { // https://ascii.co.uk/art/skulls
         BIG:
 `                             __xxxxxxxxxxxxxxxx___.

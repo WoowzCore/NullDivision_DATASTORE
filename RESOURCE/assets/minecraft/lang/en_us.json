@@ -1,3 +1,5 @@
 {
-  "agree": "AGREE"
+  "w.agree"        : "AGREE",
+  "w.access_denied": "ACCESS DENIED",
+  "w.warning"      : "⚠ WARNING ⚠"
 }
