@@ -14,7 +14,10 @@ _G.Logger = {
 _G.SetEvent = function(ID, Handler){ _G.JAVA.SetEvent(ID, Handler) }
 
 // Вызывает аномалию
-_G.ApplyAnomaly = function(ID, Data){ _G.JAVA.ApplyAnomaly(ID, Data); }
+_G.ApplyAnomaly = function(ID){ _G.JAVA.ApplyAnomaly(ID, Array.prototype.slice.call(arguments, 1)); }
+
+// Сбрасывает аномалию
+_G.ResetAnomaly = function(ID){ _G.JAVA.ResetAnomaly(ID); }
 
 // ----------------------------------------------------------------------
 
@@ -34,16 +37,14 @@ _G.ClientSide = function(){ return _G.JAVA.ClientSide() }
 
 // ----------------------------------------------------------------------
 
-_G.World = {
-	SetBlock: function(X, Y, Z, Block, Dimension){ _G.JAVA.SetBlock(Math.floor(X), Math.floor(Y), Math.floor(Z), Block, Dimension || _G.Constant.Dimension_Overworld) }
-}
+// Синус от 0 до 1
+_G.DSin = function(V){ return (Math.sin(V) + 1) / 2 }
+
+// Косинус от 0 до 1
+_G.DCos = function(V){ return (Math.cos(V) + 1) / 2 }
 
 // ----------------------------------------------------------------------
 
-_G.New = {}
-
-_G.New.Vec2 = function(X, Y){ return _G.JAVA.New_Vec2(X, Y, Z) }
-_G.New.Vec3 = function(X, Y, Z){ return _G.JAVA.New_Vec3(X, Y, Z) }
-_G.New.ResourceLocation = function(Namespace, Path){ return _G.JAVA.New_ResourceLocation(Namespace, Path) }
-_G.New.Vector2f = function(X, Y){ return _G.JAVA.New_Vector2f(X, Y, Z) }
-_G.New.Vector3f = function(X, Y, Z){ return _G.JAVA.New_Vector3f(X, Y, Z) }
+_G.World = {
+	SetBlock: function(X, Y, Z, Block, Dimension){ _G.JAVA.SetBlock(Math.floor(X), Math.floor(Y), Math.floor(Z), Block, Dimension || _G.Constant.Dimension_Overworld) }
+}

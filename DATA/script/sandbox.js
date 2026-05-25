@@ -1,34 +1,12 @@
+var i = 0
+_G.SetEvent(_G.Enum.EventType.ClientTick, function(End){
+    if(!End){ return }
 
-/*var i = 0
-_G.AddEvent(_G.Enum.EventType.ServerTick, function(End){
-	if(!End){ return }
+    i++
 
-	i++
-	if(i > 100){
-		i = 0
-
-		_G.Logger.Info("GOOOOOOOO!!!!!!!")
-
-
-	}
-})*/
-
-/*_G.AddEvent(_G.Enum.EventType.ServerInit, function(){
-	_G.World.SetBlock(-247, 64, 317, "minecraft:diamond_block")
-})*/
-
-_G.SetEvent(_G.Enum.EventType.BeforeJSReload, function(){
-    _G.Logger.Info("HI AND WELCOME")
+    //_G.ApplyAnomaly(_G.Enum.AnomalyType.PlanetSize, _G.Enum.Planet.Moon, _G.DSin(i) * 3000)
+    //_G.ApplyAnomaly(_G.Enum.AnomalyType.PlanetSize, _G.Enum.Planet.Sun, (1-_G.DSin(i)) * 3000)
 })
 
-_G.SetEvent(_G.Enum.EventType.KeyPress, function(Key, ScanCode, Modifiers){
-
-})
-
-_G.SetEvent(_G.Enum.EventType.KeyRelease, function(Key, ScanCode, Modifiers){
-
-})
-
-_G.SetEvent(_G.Enum.EventType.KeyRepeat, function(Key, ScanCode, Modifiers){
-
-})
+_G.ApplyAnomaly(_G.Enum.AnomalyType.StarsVisible, true)
+_G.ApplyAnomaly(_G.Enum.AnomalyType.PlanetVisible, _G.Enum.Planet.Moon, true)
