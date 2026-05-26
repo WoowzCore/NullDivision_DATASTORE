@@ -1,3 +1,7 @@
+// Инициализирует скрипт
+// (Название скрипта : String)
+WL.InitScript = function(Script){ WL.JAVA.InitScript(Script) }
+
 // Отправляет сообщения в консоль
 WL.Logger = {
     Info : function(Message){ WL.JAVA.Info ("[JS] " + String(Message)) },
@@ -236,3 +240,7 @@ WL.Entity = {
 // (Команда : String)
 // return (Ошибка, если есть : String/null)
 WL.ExecuteCommand = function(Command){ return WL.JAVA.ExecuteCommand(Command) }
+
+// ----------------------------------------------------------------------
+
+WL.InitScript("register")

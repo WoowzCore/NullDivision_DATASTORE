@@ -9,3 +9,5 @@ WL.SetEvent(WL.Enum.Event.Register, function(RegisterType){
         }
     }
 })
+
+WL.InitScript("sandbox")
