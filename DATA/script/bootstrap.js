@@ -1,8 +1,8 @@
 // Отправляет сообщения в консоль
 WL.Logger = {
-    Info : function(Message){ WL.JAVA.Info (String(Message)) },
-	Warn : function(Message){ WL.JAVA.Warn (String(Message)) },
-	Error: function(Message){ WL.JAVA.Error(String(Message)) },
+    Info : function(Message){ WL.JAVA.Info ("[JS] " + String(Message)) },
+	Warn : function(Message){ WL.JAVA.Warn ("[JS] " + String(Message)) },
+	Error: function(Message){ WL.JAVA.Error("[JS] " + String(Message)) },
 
 	// Всё равно отправляется в консоль, игнорируя Debug
 	Anyway: function(Message){ WL.JAVA.Anyway(String(Message)) }
