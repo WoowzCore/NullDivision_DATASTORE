@@ -49,6 +49,11 @@ WL.ServerSide = function(){ return WL.JAVA.ServerSide() }
 // return (Клиентская сторона? : boolean)
 WL.ClientSide = function(){ return WL.JAVA.ClientSide() }
 
+// Регистрирует объект (ВЫЗЫВАТЬ ТОЛЬКО В ИВЕНТЕ Enum.Event.Register)
+// (Информация об объекте : ?)
+// return (Успешно? : boolean)
+WL.Register = function(Info){ return WL.JAVA.Register(Info) }
+
 // ----------------------------------------------------------------------
 
 // Синус от 0 до 1
